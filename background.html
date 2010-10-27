@@ -1,0 +1,35 @@
+
+<script>
+
+if(!String.prototype.startsWith){
+    String.prototype.startsWith = function (str) {
+        return !this.indexOf(str);
+    }
+}
+
+if(!String.prototype.contains) {
+	String.prototype.contains = function(it) { 
+		return this.indexOf(it) != -1;
+	};
+}
+
+var sites = ["facebook.com", "twitter.com"];
+
+chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
+	
+	if(info.status == "loading") {
+
+		if(tab.url.startsWith("http://")) {
+
+			for(var i in sites) {
+				
+				if(tab.url.contains(sites[i])) {
+					
+					chrome.tabs.update(tab.id, {url: tab.url.replace("http://", "https://"), selected: true});
+				}
+			}
+		}
+	}
+});
+
+</script>

@@ -1,0 +1,7 @@
+{
+  "name": "Use HTTPS",
+  "version": "1.0.0",
+  "description": "Forces defined sites to use https instead of http",
+  "permissions": ["tabs"],
+  "background_page": "background.html"
+}
