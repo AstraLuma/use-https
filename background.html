@@ -13,14 +13,28 @@ if(!String.prototype.contains) {
 	};
 }
 
-var sites = ["facebook.com", "twitter.com"];
+var defaultSites = ["facebook.com", "twitter.com"];
+
+// Check if we have stored sites
+var storedSites = localStorage.getItem('sites');
+
+// IF sites is null, we initialzie it 
+if(null == storedSites) {
+	
+	console.log("XXXX: Initialize localStorage with default sites");
+	
+	localStorage['sites'] = JSON.stringify(defaultSites); 
+}
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	
 	if(info.status == "loading") {
 
 		if(tab.url.startsWith("http://")) {
-
+			
+			// Getting a list of sites from localStorage
+			var sites = JSON.parse(localStorage.getItem('sites'));
+			
 			for(var i in sites) {
 				
 				if(tab.url.contains(sites[i])) {
