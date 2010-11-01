@@ -1,5 +1,5 @@
 v1.1.1:
-- Moved JS into it's own file
+- Moved JS into its own file
 - Rearranged options UI components
 - Changed Icons
 
