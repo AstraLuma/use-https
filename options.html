@@ -10,11 +10,12 @@
 
 <script type="text/javascript" src="options.js"></script>
 
-<body onload="viewSites()">
+<body onload="init()">
 	<br />
 	<br />
 	Enter site: <input id="siteName" type="text" name="siteName" />
 	<button onclick="saveSite()">Save</button>
+	<button onclick="testUrlForHttps()">Test</button>
 	<br />
 	<br />
 	Use HTTPS sites:
@@ -26,6 +27,10 @@
 	<button onclick="deleteSites()">Delete</button> selected site(s)
 	<br />
 	<br />
+	<input id="isDisabled" type=checkbox onClick="isDisabledHandler()"> Disable 'Use HTTPS' for all sites
+	<br />
+	<br />
+	Messages:
 	<div id='message'></div>
 </body>
 </html>

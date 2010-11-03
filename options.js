@@ -115,3 +115,66 @@ function deleteSites() {
 	
 	viewSites();
 }
+
+function init() {
+	
+	viewSites();
+	
+	// Initialize sites enabled flag
+	var isDisabled = localStorage.getItem('is-disabled');
+	
+	if(null == isDisabled || "false" == isDisabled) {
+		
+		localStorage['is-disabled'] = "false";
+		document.getElementById('isDisabled').checked = false;
+	}
+	else {
+	
+		document.getElementById('isDisabled').checked = true;
+	}
+}
+
+function isDisabledHandler() {
+	
+	var isDisabled = document.getElementById('isDisabled').checked;
+	
+	if(true == isDisabled) {
+		
+		localStorage['is-disabled'] = "true";
+		document.getElementById('message').innerHTML = "Disabled 'Use HTTPS' for all site(s)";
+	}
+	else {
+		
+		localStorage['is-disabled'] = "false";
+		document.getElementById('message').innerHTML = "Enabled 'Use HTTPS' for all site(s)";
+	}
+}
+
+function testUrlForHttps() {
+	
+	var url = document.getElementById("siteName").value;
+	
+	if(null == url || url.length == 0) {
+
+		return;
+	}
+	
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', 'https://' + url, true);
+	document.getElementById('message').innerHTML = "Testing if [ https://" + url +" ] supports HTTPS: ";
+	
+	xhr.onreadystatechange = function(data) {
+		
+		if (xhr.readyState == 4) {
+			
+			if (xhr.status == 200) {
+				document.getElementById('message').innerHTML += "YES";
+			}
+			else {
+				document.getElementById('message').innerHTML += "NO";
+			}
+		}
+	}
+
+	xhr.send();
+}

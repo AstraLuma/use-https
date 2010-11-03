@@ -1,4 +1,3 @@
-
 <script>
 
 if(!String.prototype.startsWith){
@@ -13,24 +12,19 @@ if(!String.prototype.contains) {
 	};
 }
 
-var defaultSites = ["facebook.com", "twitter.com"];
+// This array is used to detect circular http to https redirects
+var urlHistoryMap = [];
 
-// Check if we have stored sites
-var storedSites = localStorage.getItem('sites');
-
-// IF sites is null, we initialzie it 
-if(null == storedSites) {
-	
-	console.log("XXXX: Initialize localStorage with default sites");
-	
-	localStorage['sites'] = JSON.stringify(defaultSites); 
-}
+// Initialize stored values
+init();
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	
 	if(info.status == "loading") {
+		
+		var isDisabled = localStorage.getItem('is-disabled');
 
-		if(tab.url.startsWith("http://")) {
+		if("false" == isDisabled && tab.url.startsWith("http://")) {
 			
 			// Getting a list of sites from localStorage
 			var sites = JSON.parse(localStorage.getItem('sites'));
@@ -39,11 +33,42 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 				
 				if(tab.url.contains(sites[i])) {
 					
-					chrome.tabs.update(tab.id, {url: tab.url.replace("http://", "https://"), selected: true});
+					// Detecting if there is a circular http to https request
+					var previousUrl = urlHistoryMap[tabId];
+					if(null == previousUrl || previousUrl != tab.url) {
+						
+						chrome.tabs.update(tab.id, {url: tab.url.replace("http://", "https://"), selected: true});
+						urlHistoryMap[tabId] = tab.url;
+					}
+					else {
+						console.log("Detected circular redirect http --> https --> http --> https --> etc.")
+					}
 				}
 			}
 		}
 	}
 });
+
+
+function init() {
+	
+	// Check if we have stored sites
+	var storedSites = localStorage.getItem('sites');
+
+	// IF sites is null, we initialzie it 
+	if(null == storedSites) {
+		
+		var defaultSites = ["facebook.com", "twitter.com"];
+		localStorage['sites'] = JSON.stringify(defaultSites); 
+	}
+	
+	// Initialize sites enabled flag
+	var isDisabled = localStorage.getItem('is-disabled');
+	
+	if(null == isDisabled) {
+		
+		localStorage['sites-enabled'] = "false";
+	}
+}
 
 </script>
