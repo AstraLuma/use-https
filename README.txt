@@ -1,3 +1,8 @@
+v1.3.0:
+- Show 'Use HTTPS' icon in address bar for 'Use HTTPS' sites
+-- Clicking on 'Use HTTPS' icon in address bar brings up the options page
+- Externalized options CSS
+
 v1.2.0:
 - Option to disable 'Use HTTPS' for all sites
 - Option to test site for HTTPS support

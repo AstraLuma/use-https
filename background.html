@@ -23,7 +23,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	if(info.status == "loading") {
 		
 		var isDisabled = localStorage.getItem('is-disabled');
-
+		
 		if("false" == isDisabled && tab.url.startsWith("http://")) {
 			
 			// Getting a list of sites from localStorage
@@ -44,7 +44,26 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 						console.log("Detected circular redirect http --> https --> http --> https --> etc.")
 					}
 				}
+				else {
+					chrome.pageAction.hide(tabId);
+				}
 			}
+		}
+		else if("false" == isDisabled && tab.url.startsWith("https://")) {
+			
+			var sites = JSON.parse(localStorage.getItem('sites'));
+			
+			for(var i in sites) {
+				
+				if(tab.url.contains(sites[i])) {
+					
+					chrome.pageAction.show(tabId);
+				}
+			}
+		}
+		else {
+			
+			chrome.pageAction.hide(tabId);
 		}
 	}
 });
