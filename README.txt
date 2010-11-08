@@ -1,3 +1,6 @@
+v1.3.1:
+- Rearranged and styled options page
+
 v1.3.0:
 - Show 'Use HTTPS' icon in address bar for 'Use HTTPS' sites
 -- Clicking on 'Use HTTPS' icon in address bar brings up the options page

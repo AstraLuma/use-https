@@ -7,26 +7,21 @@
 </head>
 
 <body onload="init()">
-	<br />
-	<br />
+	
+	<div id="header"><h1>Use HTTPS Options</h1></div>
+	
+	<div class="section-header">Current sites</div>
+	<div id="sites">
+		<ul id="sitesList"></ul>
+	</div>
+	<button onclick="deleteSites()">Delete</button> selected site(s)
+	<div class="section-header">Add a site</div>
 	Enter site: <input id="siteName" type="text" name="siteName" />
 	<button onclick="saveSite()">Save</button>
 	<button onclick="testUrlForHttps()">Test</button>
-	<br />
-	<br />
-	Use HTTPS sites:
-	<br />
-	<div id="sites">
-	<ul id="sitesList"></ul>
-	</div>
-	<br />
-	<button onclick="deleteSites()">Delete</button> selected site(s)
-	<br />
-	<br />
-	<input id="isDisabled" type=checkbox onClick="isDisabledHandler()"> Disable 'Use HTTPS' for all sites
-	<br />
-	<br />
-	Messages:
+	<div class="section-header">Disable all site</div>
+	<input id="isDisabled" type=checkbox onClick="isDisabledHandler()">&nbsp;Check the checkbox to the left to disable all sites
+	<div class="section-header">Messages</div>
 	<div id='message'></div>
 </body>
 </html>
