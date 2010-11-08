@@ -1,8 +1,16 @@
 {
 	"name": "Use HTTPS",
-	"version": "1.0.0",
+	"version": "1.3.1",
 	"description": "Forces defined sites to use https instead of http",
-	"permissions": ["tabs"],
+	"icons": { "16": "lock-16.png",
+	           "48": "lock-48.png",
+	          "128": "lock-128.png" },
+	"page_action": {"default_icon": "lock-16.png",
+					"default_title": "Use HTTPS",
+					"default_popup": "options.html" },
+	"permissions": ["tabs",
+					"https://*/"
+					],
 	"background_page": "background.html",
 	"options_page": "options.html"
 }
