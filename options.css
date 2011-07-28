@@ -1,9 +1,9 @@
 
 body {
 	width:500px;
-	height:400px;
+	height:550px;
 	font-family:helvetica, arial, sans-serif;
-	margin:20px;
+	margin:5px 20px 5px 20px;
 	font-size:90%;
 }
 
@@ -14,7 +14,14 @@ body {
 	padding:3px 0 2px 5px;
 	font-weight:bold;
 	margin-bottom:1em;
-	margin-top:4em;
+	margin-top:2em;
+}
+
+label.checkbox-text {
+	position:absolute;
+	float:left;
+	width:400px;
+	padding-left: 10px;
 }
 
 #header {
@@ -33,6 +40,9 @@ body {
   background-position:1px 18px;
 }
 
+#message {
+	height:40px;
+}
 
 ul {
 	list-style-type: none;

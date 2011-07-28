@@ -19,8 +19,13 @@
 	Enter site: <input id="siteName" type="text" name="siteName" />
 	<button onclick="saveSite()">Save</button>
 	<button onclick="testUrlForHttps()">Test</button>
-	<div class="section-header">Disable all site</div>
-	<input id="isDisabled" type=checkbox onClick="isDisabledHandler()">&nbsp;Check the checkbox to the left to disable all sites
+	<div class="section-header">Additional Options</div>
+	<input id="is-disabled-input" type=checkbox onClick="isDisabledHandler()">
+	<label for="is-disabled-input" class="checkbox-text">Check the checkbox to the left to disable all sites</label>
+	<br />
+	<br />
+	<input id="enable-page-action-input" type=checkbox onClick="enablePageActionHander()">
+	<label for="enable-page-action-input" class="checkbox-text">Check the checkbox to the left to show the Use HTTPS icon in the address bar for defined sites</label>
 	<div class="section-header">Messages</div>
 	<div id='message'></div>
 </body>

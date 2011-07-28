@@ -24,6 +24,12 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 		
 		var isDisabled = localStorage.getItem('is-disabled');
 		
+		/*
+		 * The enablePageAction variable indicates if we show the 
+		 * Use HTTPS icon in the address bar via a page action
+		 */
+		var enablePageAction = localStorage.getItem('enable-page-action');
+		
 		if("false" == isDisabled && tab.url.startsWith("http://")) {
 			
 			// Getting a list of sites from localStorage
@@ -49,7 +55,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 				}
 			}
 		}
-		else if("false" == isDisabled && tab.url.startsWith("https://")) {
+		else if("true" == enablePageAction && "false" == isDisabled && tab.url.startsWith("https://")) {
 			
 			var sites = JSON.parse(localStorage.getItem('sites'));
 			
@@ -87,6 +93,14 @@ function init() {
 	if(null == isDisabled) {
 		
 		localStorage['sites-enabled'] = "false";
+	}
+	
+	// Initizlize enable page action
+	var enablePageAction = localStorage.getItem('enable-page-action');
+	
+	if(null == enablePageAction) {
+		
+		localStorage['enable-page-action'] = "false";
 	}
 }
 

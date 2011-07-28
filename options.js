@@ -136,7 +136,7 @@ function init() {
 
 function isDisabledHandler() {
 	
-	var isDisabled = document.getElementById('isDisabled').checked;
+	var isDisabled = document.getElementById('is-disabled-input').checked;
 	
 	if(true == isDisabled) {
 		
@@ -147,6 +147,22 @@ function isDisabledHandler() {
 		
 		localStorage['is-disabled'] = "false";
 		document.getElementById('message').innerHTML = "Enabled 'Use HTTPS' for all site(s)";
+	}
+}
+
+function enablePageActionHander() {
+	
+	var enablePageAction = document.getElementById('enable-page-action-input').checked;
+	
+	if(true == enablePageAction) {
+		
+		localStorage['enable-page-action'] = "true";
+		document.getElementById('message').innerHTML = "Enabled show 'Use HTTPS' icon in address bar";
+	}
+	else {
+		
+		localStorage['enable-page-action'] = "false";
+		document.getElementById('message').innerHTML = "Disabled show 'Use HTTPS' icon in address bar";
 	}
 }
 
