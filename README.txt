@@ -1,3 +1,6 @@
+v1.4.0:
+- Added option to show/hide Use HTTPS icon in the url bar for defined sites
+
 v1.3.1:
 - Rearranged and styled options page
 
