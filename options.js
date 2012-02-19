@@ -36,6 +36,10 @@ function clearUl() {
 	}
 }
 
+function redirectChanged() {
+	chrome.extension.getBackgroundPage().redirectChanged();
+}
+
 function viewSites() {
 	
 	clearUl();
@@ -72,6 +76,7 @@ function saveSite() {
 		sites[sites.length] =  site;
 		localStorage.removeItem('sites');
 		localStorage['sites'] = JSON.stringify(sites);
+		redirectChanged();
 		document.getElementById('message').innerHTML = "Added " + site + " successfully";
 	}
 	else {
@@ -107,6 +112,7 @@ function deleteSites() {
 	
 	localStorage.removeItem('sites');
 	localStorage['sites'] = JSON.stringify(storedSites);
+	redirectChanged();
 	
 	if(removedSites.length > 0 ) {
 
@@ -148,6 +154,7 @@ function isDisabledHandler() {
 		localStorage['is-disabled'] = "false";
 		document.getElementById('message').innerHTML = "Enabled 'Use HTTPS' for all site(s)";
 	}
+	redirectChanged();
 }
 
 function enablePageActionHander() {

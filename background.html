@@ -12,8 +12,20 @@ if(!String.prototype.contains) {
 	};
 }
 
-// This array is used to detect circular http to https redirects
-var urlHistoryMap = [];
+function getProtoOrigin(url) {
+	return {
+		p: url.match(/^[^:]+(?::)/),
+		o: url.match(/^(?:[^:]:\/\/)[^/]+(?:\/)/)
+	}
+}
+
+function isSecure(url) {
+	return getProtoOrigin(url).p == 'https';
+}
+
+function makeSecure(url) {
+	return url.replace("http://", "https://");
+}
 
 // Initialize stored values
 init();
@@ -22,38 +34,33 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	
 	if(info.status == "loading") {
 		
-		var isDisabled = localStorage.getItem('is-disabled');
+		var isDisabled = localStorage.getItem('is-disabled') == "true";
+		if (isDisabled) {
+			chrome.pageAction.hide(tabId)
+			return;
+		}
 		
 		/*
 		 * The enablePageAction variable indicates if we show the 
 		 * Use HTTPS icon in the address bar via a page action
 		 */
-		var enablePageAction = localStorage.getItem('enable-page-action');
+		var enablePageAction = localStorage.getItem('enable-page-action') == "true";
 		
-		if("false" == isDisabled && tab.url.startsWith("http://")) {
+		var sites = JSON.parse(localStorage.getItem('sites'));
+		var siteInList = sites.indexOf(getProtoOrigin(tab.url).o) != -1;
+		if(!isSecure(tab.url)) {
 			
 			// Getting a list of sites from localStorage
-			var sites = JSON.parse(localStorage.getItem('sites'));
 			
-			for(var i in sites) {
-				
-				if(tab.url.contains(sites[i])) {
-				}
-				else {
-					chrome.pageAction.hide(tabId);
-				}
+			if(siteInList) {
+			}
+			else {
+				chrome.pageAction.hide(tabId);
 			}
 		}
-		else if("true" == enablePageAction && "false" == isDisabled && tab.url.startsWith("https://")) {
-			
-			var sites = JSON.parse(localStorage.getItem('sites'));
-			
-			for(var i in sites) {
-				
-				if(tab.url.contains(sites[i])) {
-					
-					chrome.pageAction.show(tabId);
-				}
+		else if(enablePageAction && isSecure(tab.url)) {
+			if(siteInList) {
+				chrome.pageAction.show(tabId);
 			}
 		}
 		else {
@@ -64,34 +71,49 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 });
 
 
-chrome.webRequest.onBeforeRequest.addListener(function(request) {
-	var isDisabled = localStorage.getItem('is-disabled');
+// This array is used to detect circular http to https redirects
+var doNotRedirect = [];
+const wrFilters = {urls: ['<all_urls>'], types: ['main_frame']}
+
+function beforeRequest(request) {
+	var isDisabled = localStorage.getItem('is-disabled') == "true";
+	if (isDisabled) return {};
 	
-	if("false" == isDisabled && request.url.startsWith("http://")) {
+	var sites = JSON.parse(localStorage.getItem('sites'));
+	var siteInList = sites.indexOf(getProtoOrigin(request.url).o) != -1;
+	if (!isSecure(request.url)) {
 		
 		// Getting a list of sites from localStorage
-		var sites = JSON.parse(localStorage.getItem('sites'));
 		var reqId = request.requestId; //FIXME: Do something better
-		for(var i in sites) {
+		if(siteInList) {
 			
-			if(request.url.contains(sites[i])) {
-				
-				// Detecting if there is a circular http to https request
-				var previousUrl = urlHistoryMap[reqId];
-				if(null == previousUrl || previousUrl != request.url) {
-					
-					urlHistoryMap[reqId] = request.url;
-					var surl = request.url.replace("http://", "https://");
-					console.log("Redirecting "+request.url+" to "+surl);
-					return {redirectUrl: surl}
-				}
-				else {
-					console.log("Detected circular redirect http --> https --> http --> https --> etc.")
-				}
+			// Detecting if there is a circular http to https request
+			
+			if(doNotRedirect.indexOf(getProtoOrigin(request.url).o) == -1) {
+				var surl = makeSecure(request.url);
+				console.log("Redirecting "+request.url+" to "+surl);
+				return {redirectUrl: surl}
+			}
+			else {
+				console.log("Detected circular redirect http --> https --> http --> https --> etc.")
 			}
 		}
 	}
-}, {urls: ['<all_urls>'], types: ['main_frame']}, extraInfoSpec=["blocking"] );
+	return {};
+}
+chrome.webRequest.onBeforeRequest.addListener(beforeRequest, wrFilters, ["blocking"]);
+
+
+function beforeRedirect(details) {
+	if (isSecure(details.url) && !isSecure(details.redirectUrl)) {
+		doNotRedirect.push(getProtoOrigin(details.url).o);
+	}
+}
+chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, wrFilters);
+
+function redirectChanged() {
+	chrome.webRequest.handlerBehaviorChanged(beforeRequest);
+}
 
 function init() {
 	
