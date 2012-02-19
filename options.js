@@ -8,7 +8,7 @@ function contains(items, item) {
 			return true;
 		}
 	}
-   	return false;
+	return false;
 }
 
 function removeByValue(arr, val) {

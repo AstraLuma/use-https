@@ -9,7 +9,9 @@
 					"default_title": "Use HTTPS",
 					"default_popup": "options.html" },
 	"permissions": ["tabs",
-					"https://*/"
+					"webRequest",
+					"webRequestBlocking",
+					"<all_urls>"
 					],
 	"background_page": "background.html",
 	"options_page": "options.html"

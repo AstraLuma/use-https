@@ -38,17 +38,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 			for(var i in sites) {
 				
 				if(tab.url.contains(sites[i])) {
-					
-					// Detecting if there is a circular http to https request
-					var previousUrl = urlHistoryMap[tabId];
-					if(null == previousUrl || previousUrl != tab.url) {
-						
-						chrome.tabs.update(tab.id, {url: tab.url.replace("http://", "https://"), selected: true});
-						urlHistoryMap[tabId] = tab.url;
-					}
-					else {
-						console.log("Detected circular redirect http --> https --> http --> https --> etc.")
-					}
 				}
 				else {
 					chrome.pageAction.hide(tabId);
@@ -75,6 +64,35 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 });
 
 
+chrome.webRequest.onBeforeRequest.addListener(function(request) {
+	var isDisabled = localStorage.getItem('is-disabled');
+	
+	if("false" == isDisabled && request.url.startsWith("http://")) {
+		
+		// Getting a list of sites from localStorage
+		var sites = JSON.parse(localStorage.getItem('sites'));
+		var reqId = request.requestId; //FIXME: Do something better
+		for(var i in sites) {
+			
+			if(request.url.contains(sites[i])) {
+				
+				// Detecting if there is a circular http to https request
+				var previousUrl = urlHistoryMap[reqId];
+				if(null == previousUrl || previousUrl != request.url) {
+					
+					urlHistoryMap[reqId] = request.url;
+					var surl = request.url.replace("http://", "https://");
+					console.log("Redirecting "+request.url+" to "+surl);
+					return {redirectUrl: surl}
+				}
+				else {
+					console.log("Detected circular redirect http --> https --> http --> https --> etc.")
+				}
+			}
+		}
+	}
+}, {urls: ['<all_urls>'], types: ['main_frame']}, extraInfoSpec=["blocking"] );
+
 function init() {
 	
 	// Check if we have stored sites
@@ -83,7 +101,7 @@ function init() {
 	// IF sites is null, we initialzie it 
 	if(null == storedSites) {
 		
-		var defaultSites = ["facebook.com", "twitter.com"];
+		var defaultSites = ["facebook.com", "twitter.com", "google.com", "wikipedia.org"];
 		localStorage['sites'] = JSON.stringify(defaultSites); 
 	}
 	
