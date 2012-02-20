@@ -137,7 +137,7 @@ function beforeRedirect(details) {
 	var frompo = new ProtoOrigin(details.url),
 	    topo = new ProtoOrigin(details.redirectUrl);
 	if (frompo.isSecure() && !topo.isSecure()) {
-        console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")"
+        console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
 		var origin = frompo.o;
 		doNotRedirect.push(origin);
 	}
