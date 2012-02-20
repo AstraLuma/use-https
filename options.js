@@ -132,7 +132,7 @@ $('#delete-sites').click(function() {
 
 $('#is-disabled-input').click(function() {
 	
-	var isDisabled = $('#is-disabled-input').val();
+	var isDisabled = $('#is-disabled-input').is(':checked');
 	
 	if(isDisabled) {
 		
@@ -147,7 +147,7 @@ $('#is-disabled-input').click(function() {
 
 $('#enable-page-action-input').click(function() {
 	
-	var enablePageAction = $('#enable-page-action-input').val();
+	var enablePageAction = $('#enable-page-action-input').is(':checked');
 	
 	if(enablePageAction) {
 		
