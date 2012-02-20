@@ -54,4 +54,19 @@ ul#sites {
 
 #potsites span, #dnr span {
 	cursor: pointer;
+    border: thin solid;
+    border-radius: 0.3em;
+    line-height: 1.4em;
+    padding: 0 0.3em;
+    white-space: nowrap;
+}
+
+#potsites span {
+    border-color: #2A2;
+    background: #EFE;
+}
+
+#dnr span {
+    border-color:  #F22;
+    background: #FEE;
 }
