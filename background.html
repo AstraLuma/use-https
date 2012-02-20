@@ -178,8 +178,9 @@ function testUrlForHttps(url, callback) {
 		return;
 	}
 	var xhr = new XMLHttpRequest();
-	xhr.open('GET', 'https://' + url, true);
+	xhr.open('HEAD', 'https://' + url, true);
 	
+    //FIXME: Detect redirects
 	xhr.onreadystatechange = function(data) {
 		
 		if (xhr.readyState == 4) {
