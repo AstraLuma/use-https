@@ -70,7 +70,10 @@ function init() {
 	viewSites();
 	
 	// Initialize sites enabled flag
-	$('#is-disabled-input').val(jsonStorage.get('is-disabled'));
+	if (jsonStorage.get('is-disabled'))
+        $('#is-disabled-input').attr('checked', true);
+    if (jsonStorage.get('enable-page-action'))
+        $('#enable-page-action-input').attr('checked', true);
 }
 $(init);
 
