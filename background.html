@@ -21,7 +21,7 @@ if(!String.prototype.contains) {
  */
 function ProtoOrigin(url) {
 	var p = /^([^:]+):/.exec(url),
-		o = /^[^:]+:\/\/([^\/]+)\//.exec(url);
+		o = /^[^:]+:\/{0,2}([^\/]+)\/?/.exec(url);
 	this.p = p[1];
 	this.o = o[1];
 	this.url = url;
@@ -97,7 +97,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 function beforeRequest(request) {
 	if (!request) return {}; // on handlerBehaviorChanged() 
 	
-	var isDisabled = jsonStorage.get('is-disabled') == "true";
+	var isDisabled = jsonStorage.get('is-disabled');
 	if (isDisabled) return {};
 	
 	var po = new ProtoOrigin(request.url);
@@ -123,11 +123,6 @@ function beforeRequest(request) {
 							console.log("Potential site: "+po.o);
 							potentialSites.push(po.o);
 						}
-					} else {
-						if (doNotRedirect.indexOf(po.o) == -1) {
-							console.log("Blacklist site: "+po.o);
-							doNotRedirect.push(po.o);
-						}
 					}
 				});
 			}, 0);
@@ -142,6 +137,7 @@ function beforeRedirect(details) {
 	var frompo = new ProtoOrigin(details.url),
 	    topo = new ProtoOrigin(details.redirectUrl);
 	if (frompo.isSecure() && !topo.isSecure()) {
+        console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")"
 		var origin = frompo.o;
 		doNotRedirect.push(origin);
 	}

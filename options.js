@@ -35,7 +35,7 @@ function viewSites() {
 	var dnr = chrome.extension.getBackgroundPage().doNotRedirect;
 	for(var i in sites.sort()) {
 		//XXX: Use a templating thing?
-		var new_element = $("<li><input type='checkbox' name='" + sites[i] + "' value='" + sites[i] + "' />&nbsp;" + sites[i]+"</li>");;
+		var new_element = $("<li><input type='checkbox' name='" + sites[i] + "' value='" + sites[i] + "' />&nbsp;" + sites[i]+"</li>");
 		if (dnr.indexOf(sites[i]) != -1) {
 			new_element.addClass("blacklisted");
 		}
@@ -44,16 +44,25 @@ function viewSites() {
 	
 	$('#potsites').empty();
 	var potentialSites = chrome.extension.getBackgroundPage().potentialSites;
-	for (i in potentialSites) {
+	for (i in potentialSites.sort()) {
 		var site = potentialSites[i];
-		$('#potsites').append($('<span></span>').text(site).click(function() {
+		$('#potsites').append($('<span title="Add"></span>').text(site).click(function() {
 			$('#siteName').val($(this).text());
 			$('#save-site').click();
 		}));
 		$('#potsites').append(' ');
 	}
 	
-	$('#dnr').text(chrome.extension.getBackgroundPage().doNotRedirect.sort().join(", "));
+    $('#dnr').empty();
+	var doNotRedirect = chrome.extension.getBackgroundPage().doNotRedirect;
+	for (i in doNotRedirect.sort()) {
+		var site = doNotRedirect[i];
+		$('#dnr').append($('<span title="Remove"></span>').text(site).click(function() {
+			removeByValue(chrome.extension.getBackgroundPage().doNotRedirect, $(this).text());
+            this.parentNode.removeChild(this);
+		}));
+		$('#dnr').append(' ');
+	}
 }
 
 function init() {

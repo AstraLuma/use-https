@@ -52,6 +52,6 @@ ul#sites {
 	color: red;
 }
 
-#potsites span {
+#potsites span, #dnr span {
 	cursor: pointer;
 }
