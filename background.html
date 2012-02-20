@@ -13,10 +13,9 @@ if(!String.prototype.contains) {
 }
 
 function getProtoOrigin(url) {
-	return {
-		p: url.match(/^[^:]+(?::)/),
-		o: url.match(/^(?:[^:]:\/\/)[^/]+(?:\/)/)
-	}
+	var p = /^([^:]+):/.exec(url),
+		o = /^[^:]+:\/\/([^\/]+)\//.exec(url);
+	return {p: p[1], o: o[1]};
 }
 
 function isSecure(url) {
@@ -73,23 +72,28 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 
 // This array is used to detect circular http to https redirects
 var doNotRedirect = [];
+var potentialSites = [];
 const wrFilters = {urls: ['<all_urls>'], types: ['main_frame']}
 
 function beforeRequest(request) {
+	if (!request) return {}; // on handlerBehaviorChanged() 
+	
 	var isDisabled = localStorage.getItem('is-disabled') == "true";
 	if (isDisabled) return {};
 	
+	var po = getProtoOrigin(request.url);
+	if (po.p != 'http') return {};
+	
 	var sites = JSON.parse(localStorage.getItem('sites'));
-	var siteInList = sites.indexOf(getProtoOrigin(request.url).o) != -1;
+	var siteInList = sites.indexOf(po.o) != -1;
+	
 	if (!isSecure(request.url)) {
 		
 		// Getting a list of sites from localStorage
-		var reqId = request.requestId; //FIXME: Do something better
 		if(siteInList) {
 			
 			// Detecting if there is a circular http to https request
-			
-			if(doNotRedirect.indexOf(getProtoOrigin(request.url).o) == -1) {
+			if(doNotRedirect.indexOf(po.o) == -1) {
 				var surl = makeSecure(request.url);
 				console.log("Redirecting "+request.url+" to "+surl);
 				return {redirectUrl: surl}
@@ -97,6 +101,22 @@ function beforeRequest(request) {
 			else {
 				console.log("Detected circular redirect http --> https --> http --> https --> etc.")
 			}
+		} else {
+			window.setTimeout(function() {
+				testUrlForHttps(po.o, function(hasHttps) {
+					if (hasHttps) {
+						if (potentialSites.indexOf(po.o) == -1) {
+							console.log("Potential site: "+po.o);
+							potentialSites.push(po.o);
+						}
+					} else {
+						if (doNotRedirect.indexOf(po.o) == -1) {
+							console.log("Blacklist site: "+po.o);
+							doNotRedirect.push(po.o);
+						}
+					}
+				});
+			}, 0);
 		}
 	}
 	return {};
@@ -105,14 +125,17 @@ chrome.webRequest.onBeforeRequest.addListener(beforeRequest, wrFilters, ["blocki
 
 
 function beforeRedirect(details) {
+	if (!details) return; // on handlerBehaviorChanged() 
 	if (isSecure(details.url) && !isSecure(details.redirectUrl)) {
-		doNotRedirect.push(getProtoOrigin(details.url).o);
+		var origin = getProtoOrigin(details.url).o;
+		doNotRedirect.push(origin);
 	}
 }
 chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, wrFilters);
 
 function redirectChanged() {
 	chrome.webRequest.handlerBehaviorChanged(beforeRequest);
+	chrome.webRequest.handlerBehaviorChanged(beforeRedirect);
 }
 
 function init() {
@@ -142,6 +165,34 @@ function init() {
 		
 		localStorage['enable-page-action'] = "false";
 	}
+}
+
+var urlCache = {};
+
+function testUrlForHttps(url, callback) {
+	if (urlCache[url] != null) {
+		callback(urlCache[url]);
+		return;
+	}
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', 'https://' + url, true);
+	
+	xhr.onreadystatechange = function(data) {
+		
+		if (xhr.readyState == 4) {
+			
+			if (xhr.status == 200) {
+				urlCache[url] = true;
+				callback(true);
+			}
+			else {
+				urlCache[url] = false;
+				callback(false);
+			}
+		}
+	}
+
+	xhr.send();
 }
 
 </script>

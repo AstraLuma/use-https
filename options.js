@@ -36,21 +36,20 @@ function clearUl() {
 	}
 }
 
-function redirectChanged() {
-	chrome.extension.getBackgroundPage().redirectChanged();
-}
-
 function viewSites() {
 	
 	clearUl();
 	
 	var sites = JSON.parse(localStorage.getItem('sites'));
-	
-	for(var i in sites) {
+	var dnr = chrome.extension.getBackgroundPage().doNotRedirect;
+	for(var i in sites.sort()) {
 		
 		var container = document.getElementById('sitesList');
 		var new_element = document.createElement('li');
 		new_element.innerHTML = " <input type='checkbox' name='" + sites[i] + "' value='" + sites[i] + "' />&nbsp;" + sites[i];
+		if (dnr.indexOf(sites[i]) != -1) {
+			new_element.className = "blacklisted";
+		}
 		container.insertBefore(new_element, container.firstChild);
 	}
 }
@@ -132,12 +131,14 @@ function init() {
 	if(null == isDisabled || "false" == isDisabled) {
 		
 		localStorage['is-disabled'] = "false";
-		document.getElementById('isDisabled').checked = false;
+		document.getElementById('is-disabled-input').checked = false;
 	}
 	else {
 	
-		document.getElementById('isDisabled').checked = true;
+		document.getElementById('is-disabled-input').checked = true;
 	}
+	document.getElementById('potsites').innerHTML = chrome.extension.getBackgroundPage().potentialSites.sort().join(", ");
+	document.getElementById('dnr').innerHTML = chrome.extension.getBackgroundPage().doNotRedirect.sort().join(", ");
 }
 
 function isDisabledHandler() {
@@ -182,22 +183,20 @@ function testUrlForHttps() {
 		return;
 	}
 	
-	var xhr = new XMLHttpRequest();
-	xhr.open('GET', 'https://' + url, true);
 	document.getElementById('message').innerHTML = "Testing if [ https://" + url +" ] supports HTTPS: ";
 	
-	xhr.onreadystatechange = function(data) {
-		
-		if (xhr.readyState == 4) {
-			
-			if (xhr.status == 200) {
-				document.getElementById('message').innerHTML += "YES";
-			}
-			else {
-				document.getElementById('message').innerHTML += "NO";
-			}
+	chrome.extension.getBackgroundPage().testUrlForHttps(url, function(hasHttps) {
+		if (hasHttps) {
+			document.getElementById('message').innerHTML += "YES";
 		}
-	}
-
-	xhr.send();
+		else {
+			document.getElementById('message').innerHTML += "NO";
+		}
+	});
 }
+
+function redirectChanged() {
+	chrome.extension.getBackgroundPage().redirectChanged();
+}
+
+

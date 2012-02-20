@@ -25,19 +25,19 @@ label.checkbox-text {
 }
 
 #header {
-  padding-bottom:1.5em;
-  padding-top:1.5em;
+	padding-bottom:1.5em;
+	padding-top:1.5em;
 }
 
 #header h1 {
-  font-size: 150%;
-  display:inline;
-  padding-bottom:43px;
-  padding-left:75px;
-  padding-top:40px;
-  background:url(lock-128.png) no-repeat;
-  background-size:67px;
-  background-position:1px 18px;
+	font-size: 150%;
+	display:inline;
+	padding-bottom:43px;
+	padding-left:75px;
+	padding-top:40px;
+	background:url(lock-128.png) no-repeat;
+	background-size:67px;
+	background-position:1px 18px;
 }
 
 #message {
@@ -55,5 +55,7 @@ li {
 	padding:1px;
 }
 
-
+.blacklisted {
+	color: red;
+}
 
