@@ -1,34 +1,39 @@
+<!DOCTYPE html>
 <html>
 
 <head>
 	<title>Use HTTPS Options</title>
+	<script type="text/javascript" src="jquery.min.js"></script>
 	<script type="text/javascript" src="options.js"></script>
+	<script src="jsonstore.js"></script>
 	<link rel="stylesheet" type="text/css" href="options.css"/>
 </head>
 
-<body onload="init()">
+<body>
 	
-	<div id="header"><h1>Use HTTPS Options</h1></div>
+	<h1>Use HTTPS Options</h1>
 	
-	<div class="section-header">Current sites</div>
-	<div id="sites">
-		<ul id="sitesList"></ul>
-	</div>
-	<button onclick="deleteSites()">Delete</button> selected site(s)
-	<div class="section-header">Add a site</div>
+	<h2>Current sites</h2>
+	<ul id="sites"></ul>
+	<button id="delete-sites">Delete</button> selected site(s)
+	
+	<h2>Add a site</h2>
 	Enter site: <input id="siteName" type="text" name="siteName" />
-	<button onclick="saveSite()">Save</button>
-	<button onclick="testUrlForHttps()">Test</button>
+	<button id="save-site">Save</button>
+	<button id="test-url-for-https">Test</button>
 	<div>Potential sites: <span id="potsites"></span></div>
 	<div>Blacklisted sites: <span id="dnr"></span></div>
-	<div class="section-header">Additional Options</div>
-	<input id="is-disabled-input" type=checkbox onClick="isDisabledHandler()">
-	<label for="is-disabled-input" class="checkbox-text">Disable all sites</label>
+	<button id="clear-lists">Clear site lists</button>
+	
+	<h2>Additional Options</h2>
+	<input id="is-disabled-input" type=checkbox>
+	<label for="is-disabled-input">Disable all sites</label>
 	<br />
 	<br />
-	<input id="enable-page-action-input" type=checkbox onClick="enablePageActionHander()">
-	<label for="enable-page-action-input" class="checkbox-text">Show the Use HTTPS icon in the address bar for defined sites</label>
-	<div class="section-header">Messages</div>
+	<input id="enable-page-action-input" type=checkbox>
+	<label for="enable-page-action-input">Show the Use HTTPS icon in the address bar for defined sites</label>
+	
+	<h2>Messages</h2>
 	<div id='message'></div>
 </body>
 </html>

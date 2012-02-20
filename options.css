@@ -7,7 +7,7 @@ body {
 	font-size:90%;
 }
 
-.section-header {
+h2 {
 	background:#ebeff9;
 	border-top:1px solid #b5c7de;
 	font-size:99%;
@@ -17,40 +17,33 @@ body {
 	margin-top:2em;
 }
 
-label.checkbox-text {
+input[type=checkbox] + label {
 	position:absolute;
 	float:left;
 	width:400px;
 	padding-left: 10px;
 }
 
-#header {
-	padding-bottom:1.5em;
-	padding-top:1.5em;
+h1 {
 }
-
-#header h1 {
-	font-size: 150%;
-	display:inline;
-	padding-bottom:43px;
-	padding-left:75px;
-	padding-top:40px;
-	background:url(lock-128.png) no-repeat;
-	background-size:67px;
-	background-position:1px 18px;
+h1::before {
+	content: url(lock-64.png);
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 3px;
 }
 
 #message {
 	height:40px;
 }
 
-ul {
+ul#sites {
 	list-style-type: none;
 	margin-left:0px;
 	text-indent: -2.5em;
 }
 
-li {
+#sites li {
 	margin-left:0px;
 	padding:1px;
 }
@@ -59,3 +52,6 @@ li {
 	color: red;
 }
 
+#potsites span {
+	cursor: pointer;
+}
