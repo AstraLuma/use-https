@@ -16,45 +16,45 @@ f.text
 ------
 The string that produced this filter.
 
-FilterSet
+FilterPile
 ==========
 Given a pile of Filter instances, organize them for efficient matching.
 
-fl.add(f)
+fp.add(f)
 ---------
 Add a filter.
 
-fl.remove(f)
+fp.remove(f)
 ------------
 Remove a filter.
 
-fl.replace(old, new)
+fp.replace(old, new)
 --------------------
 Removes filter old and inserts filter new as an atomic operation. For editing.
 
-fl.length
+fp.length
 ---------
 The number of filters currently stored here.
 
-fl.clear()
+fp.clear()
 ----------
 Removes all filters.
 
-fl.matches(txt)
+fp.matches(txt)
 ---------------
 Returns true if at least one filter matches the argument, false otherwise.
 
-fl.each(cb)
+fp.each(cb)
 -----------
 Execute a function for each filter in this list. If cb returns true, stop.
 
 This is useful for iterating over the filters.
 
-fl._walk(txt, cb)
+fp._walk(txt, cb)
 -----------------
 Internal. Call cb for each filter whose fastkey matches txt. If cb returns true, stop.
 
-FilterList structure
+FilterPile structure
 --------------------
 Store as a tree, where each character in the fastkey is an identifier. That is, fastkey of 'foo' gets stored to ['f']['o']['o'].
 
