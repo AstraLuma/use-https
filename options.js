@@ -53,13 +53,14 @@ function viewSites() {
 		$('#potsites').append(' ');
 	}
 	
-    $('#dnr').empty();
+	$('#dnr').empty();
 	var doNotRedirect = chrome.extension.getBackgroundPage().doNotRedirect;
 	for (i in doNotRedirect.sort()) {
 		var site = doNotRedirect[i];
 		$('#dnr').append($('<span title="Remove"></span>').text(site).click(function() {
 			removeByValue(chrome.extension.getBackgroundPage().doNotRedirect, $(this).text());
-            this.parentNode.removeChild(this);
+			this.parentNode.removeChild(this);
+			viewSites();
 		}));
 		$('#dnr').append(' ');
 	}
