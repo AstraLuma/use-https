@@ -1,31 +1,9 @@
+<script src="utils.js"></script>
 <script src="jsonstore.js"></script>
 <script>
 //FIXME: Expire these eventually
 var doNotRedirect = [];
 var potentialSites = [];
-
-if(!String.prototype.startsWith){
-	String.prototype.startsWith = function (str) {
-		return !this.indexOf(str);
-	}
-}
-
-if(!String.prototype.contains) {
-	String.prototype.contains = function(it) { 
-		return this.indexOf(it) != -1;
-	};
-}
-
-if(!Array.prototype.uniquify) {
-	Array.prototype.uniquify = function() { 
-		this.sort();
-		for (var i = 1; i < this.length; i++) {
-			if (this[i-1] == this[i]) {
-				delete this[i--];
-			}
-		}
-	};
-}
 
 /**
  * Extracts the protocol and the origin from the given URL.

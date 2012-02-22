@@ -1,19 +1,3 @@
-function contains(items, item) {
-	return items.indexOf(item) != -1;
-}
-
-function removeByValue(arr, val) {
-	
-	for(var i=0; i<arr.length; i++) {
-
-		if(arr[i] == val) {
-
-			arr.splice(i, 1);
-			break;
-		}
-	}
-}
-
 function redirectChanged() {
 	chrome.extension.getBackgroundPage().redirectChanged();
 }
@@ -58,7 +42,7 @@ function viewSites() {
 	for (i in doNotRedirect.sort()) {
 		var site = doNotRedirect[i];
 		$('#dnr').append($('<span title="Remove"></span>').text(site).click(function() {
-			removeByValue(chrome.extension.getBackgroundPage().doNotRedirect, $(this).text());
+			chrome.extension.getBackgroundPage().doNotRedirect.removeByValue($(this).text());
 			this.parentNode.removeChild(this);
 			viewSites();
 		}));
@@ -99,12 +83,11 @@ $('#save-site').click(function() {
 		jsonStorage.set('sites', sites);
 		redirectChanged();
 		showMessage("Added " + site + " successfully");
-	}
-	else {
+	} else {
 		showMessage(site + " is already protected");
 	}
 	
-	removeByValue(chrome.extension.getBackgroundPage().potentialSites, site);
+	chrome.extension.getBackgroundPage().potentialSites.removeByValue(site);
 	
 	viewSites();
 });
@@ -118,7 +101,7 @@ $('#delete-sites').click(function() {
 		if(this.checked) {
 			var siteName = this.name;
 			console.log(siteName);
-			removeByValue(storedSites, siteName);
+			storedSites.removeByValue(siteName);
 			console.log(storedSites);
 			removedSites.push(siteName);
 		}
