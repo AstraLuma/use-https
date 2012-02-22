@@ -5,9 +5,9 @@ var doNotRedirect = [];
 var potentialSites = [];
 
 if(!String.prototype.startsWith){
-    String.prototype.startsWith = function (str) {
-        return !this.indexOf(str);
-    }
+	String.prototype.startsWith = function (str) {
+		return !this.indexOf(str);
+	}
 }
 
 if(!String.prototype.contains) {
@@ -136,8 +136,8 @@ function beforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
 	var frompo = new ProtoOrigin(details.url),
 	    topo = new ProtoOrigin(details.redirectUrl);
-	if (frompo.isSecure() && !topo.isSecure()) {
-        console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
+	if (frompo.o == topo.o && frompo.isSecure() && !topo.isSecure()) {
+		console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
 		var origin = frompo.o;
 		doNotRedirect.push(origin);
 	}
@@ -180,7 +180,7 @@ function testUrlForHttps(url, callback) {
 	var xhr = new XMLHttpRequest();
 	xhr.open('HEAD', 'https://' + url, true);
 	
-    //FIXME: Detect redirects
+	//FIXME: Detect redirects
 	xhr.onreadystatechange = function(data) {
 		
 		if (xhr.readyState == 4) {

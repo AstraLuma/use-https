@@ -72,9 +72,9 @@ function init() {
 	
 	// Initialize sites enabled flag
 	if (jsonStorage.get('is-disabled'))
-        $('#is-disabled-input').attr('checked', true);
-    if (jsonStorage.get('enable-page-action'))
-        $('#enable-page-action-input').attr('checked', true);
+		$('#is-disabled-input').attr('checked', true);
+	if (jsonStorage.get('enable-page-action'))
+		$('#enable-page-action-input').attr('checked', true);
 }
 $(init);
 
