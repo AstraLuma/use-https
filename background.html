@@ -16,6 +16,17 @@ if(!String.prototype.contains) {
 	};
 }
 
+if(!Array.prototype.uniquify) {
+	Array.prototype.uniquify = function() { 
+		this.sort();
+		for (var i = 1; i < this.length; i++) {
+			if (this[i-1] == this[i]) {
+				delete this[i--];
+			}
+		}
+	};
+}
+
 /**
  * Extracts the protocol and the origin from the given URL.
  */
@@ -113,16 +124,14 @@ function beforeRequest(request) {
 				return {redirectUrl: surl}
 			}
 			else {
-				console.log("Detected circular redirect http --> https --> http --> https --> etc.")
+				console.log("Not redirecting: "+request.url)
 			}
-		} else {
+		} else if (!(po.inSitesList(potentialSites) || po.inSitesList(doNotRedirect))) {
 			window.setTimeout(function() {
 				testUrlForHttps(po.o, function(hasHttps) {
 					if (hasHttps) {
-						if (potentialSites.indexOf(po.o) == -1) {
-							console.log("Potential site: "+po.o);
-							potentialSites.push(po.o);
-						}
+						console.log("Potential site: "+po.o);
+						potentialSites.push(po.o);
 					}
 				});
 			}, 0);
@@ -136,17 +145,18 @@ function beforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
 	var frompo = new ProtoOrigin(details.url),
 	    topo = new ProtoOrigin(details.redirectUrl);
+	// FIXME: Check for subdomains (eg, tumblr.com -> www.tumblr.com)
 	if (frompo.o == topo.o && frompo.isSecure() && !topo.isSecure()) {
 		console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
 		var origin = frompo.o;
 		doNotRedirect.push(origin);
 	}
 }
-chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, {urls: ['https://*/*'], types: ['main_frame']});
+chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, {urls: ['https://*/*']});
 
 function redirectChanged() {
 	chrome.webRequest.handlerBehaviorChanged(beforeRequest);
-	chrome.webRequest.handlerBehaviorChanged(beforeRedirect);
+//	chrome.webRequest.handlerBehaviorChanged(beforeRedirect);
 }
 
 function init() {
@@ -159,13 +169,13 @@ function init() {
 }
 
 window.setInterval(function() {
-	var newPS = [];
-	for (i in potentialSites) {
-		if (potentialSites[i] != null && doNotRedirect.indexOf(potentialSites[i]) == -1) {
-			newPS.push(potentialSites[i]);
+	potentialSites.uniquify();
+	doNotRedirect.uniquify();
+	for (var i = 0; i < potentialSites.length; i++) {
+		if (doNotRedirect.indexOf(potentialSites[i]) != -1) {
+			delete potentialSites[i--];
 		}
 	}
-	potentialSites = newPS;
 	jsonStorage.set('potential-sites', potentialSites);
 	jsonStorage.set('do-not-redirect', doNotRedirect);
 }, 1000);
