@@ -18,6 +18,9 @@ _JsonStorage.prototype = {
 		localStorage.removeItem(key);
 		this[key] = null;
 	},
+    has: function(key) {
+        return typeof localStorage[key] != "undefined";
+    },
 	setDefault: function(key, value) {
 		if (localStorage[key] == null) {
 			this.set(key, value);

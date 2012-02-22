@@ -15,39 +15,37 @@ function viewSites() {
 	var sul = $('#sites');
 	sul.empty();
 	
-	var sites = jsonStorage.get('sites');
+	var sites = SitePile.getLocal('sites');
 	var dnr = chrome.extension.getBackgroundPage().doNotRedirect;
-	for(var i in sites.sort()) {
+	sites.each(function(site) {
 		//XXX: Use a templating thing?
-		var new_element = $("<li><input type='checkbox' name='" + sites[i] + "' value='" + sites[i] + "' />&nbsp;" + sites[i]+"</li>");
-		if (dnr.indexOf(sites[i]) != -1) {
+		var new_element = $("<li><input type='checkbox' name='" + site + "' value='" + site + "' />&nbsp;" + site+"</li>");
+		if (dnr.match(site)) {
 			new_element.addClass("blacklisted");
 		}
 		sul.append(new_element);
-	}
+	});
 	
 	$('#potsites').empty();
 	var potentialSites = chrome.extension.getBackgroundPage().potentialSites;
-	for (i in potentialSites.sort()) {
-		var site = potentialSites[i];
+	potentialSites.each(function(site) {
 		$('#potsites').append($('<span title="Add"></span>').text(site).click(function() {
 			$('#siteName').val($(this).text());
 			$('#save-site').click();
 		}));
 		$('#potsites').append(' ');
-	}
+	});
 	
 	$('#dnr').empty();
 	var doNotRedirect = chrome.extension.getBackgroundPage().doNotRedirect;
-	for (i in doNotRedirect.sort()) {
-		var site = doNotRedirect[i];
+	doNotRedirect.each(function(site) {
 		$('#dnr').append($('<span title="Remove"></span>').text(site).click(function() {
-			chrome.extension.getBackgroundPage().doNotRedirect.removeByValue($(this).text());
+			chrome.extension.getBackgroundPage().doNotRedirect.del($(this).text());
 			this.parentNode.removeChild(this);
 			viewSites();
 		}));
 		$('#dnr').append(' ');
-	}
+	});
 }
 
 function init() {
@@ -66,7 +64,7 @@ $(function() {
 $('#save-site').click(function() {
 
 	// Get sites from localStorage
-	var sites = jsonStorage.get('sites');
+	var sites = SitePile.getLocal('sites');
 	
 	// Get entered url
 	var site = $("#siteName").val();
@@ -77,37 +75,37 @@ $('#save-site').click(function() {
 	}
 	
 	// Check if we already have the new site
-	if(!contains(sites, site)) {
+	if(!sites.match(site)) {
 		// Add the site and save it back to localStorage
-		sites.push(site);
-		jsonStorage.set('sites', sites);
+		sites.add(site);
+		sites.saveLocal('sites');
 		redirectChanged();
 		showMessage("Added " + site + " successfully");
 	} else {
 		showMessage(site + " is already protected");
 	}
 	
-	chrome.extension.getBackgroundPage().potentialSites.removeByValue(site);
+	chrome.extension.getBackgroundPage().potentialSites.del(site);
 	
 	viewSites();
 });
 
 $('#delete-sites').click(function() {
 	
-	var storedSites = jsonStorage.get('sites');
+	var storedSites = SitePile.getLocal('sites');
 	var removedSites = [];
 	
 	$('#sites input').each(function(i) {
 		if(this.checked) {
 			var siteName = this.name;
 			console.log(siteName);
-			storedSites.removeByValue(siteName);
+			storedSites.del(siteName);
 			console.log(storedSites);
 			removedSites.push(siteName);
 		}
 	});
 	
-	jsonStorage.set('sites', storedSites);
+	storedSites.saveLocal('sites');
 	redirectChanged();
 	
 	if(removedSites.length > 0 ) {
@@ -122,7 +120,6 @@ $('#is-disabled-input').click(function() {
 	var isDisabled = $('#is-disabled-input').is(':checked');
 	
 	if(isDisabled) {
-		
 		jsonStorage.set('is-disabled', true);
 		showMessage("Disabled 'Use HTTPS' for all site(s)");
 	} else {
@@ -137,20 +134,17 @@ $('#enable-page-action-input').click(function() {
 	var enablePageAction = $('#enable-page-action-input').is(':checked');
 	
 	if(enablePageAction) {
-		
 		jsonStorage.set('enable-page-action', true);
 		showMessage("Enabled show 'Use HTTPS' icon in address bar");
-	}
-	else {
-		
+	} else {
 		jsonStorage.set('enable-page-action', false);
 		showMessage("Disabled show 'Use HTTPS' icon in address bar");
 	}
 });
 
 $('#clear-lists').click(function() {
-	chrome.extension.getBackgroundPage().doNotRedirect = [];
-	chrome.extension.getBackgroundPage().potentialSites = [];
+	chrome.extension.getBackgroundPage().doNotRedirect.clear();
+	chrome.extension.getBackgroundPage().potentialSites.clear();
 	init();
 });
 

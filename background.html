@@ -1,46 +1,10 @@
 <script src="utils.js"></script>
 <script src="jsonstore.js"></script>
+<script src="sitepile.js"></script>
 <script>
 //FIXME: Expire these eventually
-var doNotRedirect = [];
-var potentialSites = [];
-
-/**
- * Extracts the protocol and the origin from the given URL.
- */
-function ProtoOrigin(url) {
-	var p = /^([^:]+):/.exec(url),
-		o = /^[^:]+:\/{0,2}([^\/]+)\/?/.exec(url);
-	this.p = p[1];
-	this.o = o[1];
-	this.url = url;
-}
-ProtoOrigin.prototype = {
-	/**
-	 * Does the given protocol have a secure version?
-	 */
-	hasSecure: function() {
-		return this.p == 'http';
-	},
-	
-	/**
-	 * Is the given URL secure?
-	 */
-	isSecure: function() {
-		return this.p == 'https';
-	},
-	
-	makeSecure: function() {
-		return this.url.replace("http://", "https://");
-	},
-	
-	inSitesList: function(sites) {
-		if (sites == null) {
-			sites = jsonStorage.get('sites');
-		}
-		return sites.indexOf(this.o) != -1
-	}
-};
+var doNotRedirect = new SitePile();
+var potentialSites = new SitePile();
 
 // Initialize stored values
 init();
@@ -64,19 +28,14 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 		var po = new ProtoOrigin(tab.url);
 		var siteInList = po.inSitesList();
 		if(!po.isSecure()) {
-			
-			if(siteInList) {
-			}
-			else {
+			if (!siteInList) {
 				chrome.pageAction.hide(tabId);
 			}
-		}
-		else if(enablePageAction && po.isSecure()) {
+		} else if(enablePageAction && po.isSecure()) {
 			if(siteInList) {
 				chrome.pageAction.show(tabId);
 			}
-		}
-		else {
+		} else {
 			
 			chrome.pageAction.hide(tabId);
 		}
@@ -95,7 +54,7 @@ function beforeRequest(request) {
 	var siteInList = po.inSitesList();
 	
 	if (!po.isSecure()) {
-		if(siteInList) {
+		if (siteInList) {
 			if(doNotRedirect.indexOf(po.o) == -1) {
 				var surl = po.makeSecure();
 				console.log("Redirecting "+request.url+" to "+surl);
@@ -109,7 +68,7 @@ function beforeRequest(request) {
 				testUrlForHttps(po.o, function(hasHttps) {
 					if (hasHttps) {
 						console.log("Potential site: "+po.o);
-						potentialSites.push(po.o);
+						potentialSites.add(po);
 					}
 				});
 			}, 0);
@@ -126,8 +85,7 @@ function beforeRedirect(details) {
 	// FIXME: Check for subdomains (eg, tumblr.com -> www.tumblr.com)
 	if (frompo.o == topo.o && frompo.isSecure() && !topo.isSecure()) {
 		console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
-		var origin = frompo.o;
-		doNotRedirect.push(origin);
+		doNotRedirect.add(frompo);
 	}
 }
 chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, {urls: ['https://*/*']});
@@ -141,9 +99,9 @@ function init() {
 	jsonStorage.setDefault('sites', ["facebook.com", "twitter.com", "google.com", "wikipedia.org"]); 
 	jsonStorage.setDefault('is-disabled', false);
 	jsonStorage.setDefault('enable-page-action', false);
-
-	potentialSites = jsonStorage.setDefault('potential-sites', []);
-	doNotRedirect = jsonStorage.setDefault('do-not-redirect', []);
+    
+	potentialSites = new SitePile(jsonStorage.setDefault('potential-sites', []));
+	doNotRedirect = new SitePile(jsonStorage.setDefault('do-not-redirect', []));
 }
 
 window.setInterval(function() {
@@ -154,8 +112,8 @@ window.setInterval(function() {
 			delete potentialSites[i--];
 		}
 	}
-	jsonStorage.set('potential-sites', potentialSites);
-	jsonStorage.set('do-not-redirect', doNotRedirect);
+	potentialSites.saveLocal('potential-sites');
+	doNotRedirect.saveLocal('do-not-redirect');
 }, 1000);
 
 var urlCache = {};
