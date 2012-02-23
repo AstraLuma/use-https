@@ -26,7 +26,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 		var enablePageAction = jsonStorage.get('enable-page-action');
 		
 		var po = new ProtoOrigin(tab.url);
-		var siteInList = po.inSitesList();
+		var siteInList = SitePile.sites().match(po);
 		if(!po.isSecure()) {
 			if (!siteInList) {
 				chrome.pageAction.hide(tabId);
@@ -51,19 +51,18 @@ function beforeRequest(request) {
 	var po = new ProtoOrigin(request.url);
 	if (!po.hasSecure()) return {};
 	
-	var siteInList = po.inSitesList();
+	var siteInList = SitePile.sites().match(po);
 	
 	if (!po.isSecure()) {
 		if (siteInList) {
-			if(doNotRedirect.indexOf(po.o) == -1) {
+			if(!doNotRedirect.match(po)) {
 				var surl = po.makeSecure();
 				console.log("Redirecting "+request.url+" to "+surl);
 				return {redirectUrl: surl}
-			}
-			else {
+			} else {
 				console.log("Not redirecting: "+request.url)
 			}
-		} else if (!(po.inSitesList(potentialSites) || po.inSitesList(doNotRedirect))) {
+		} else if (!(potentialSites.match(po) || doNotRedirect.match(po))) {
 			window.setTimeout(function() {
 				testUrlForHttps(po.o, function(hasHttps) {
 					if (hasHttps) {

@@ -27,13 +27,6 @@ ProtoOrigin.prototype = {
 	makeSecure: function() {
 		return this.url.replace("http://", "https://");
 	},
-	
-	inSitesList: function(sites) {
-		if (sites == null) {
-			sites = SitePile.getLocal('sites');
-		}
-		return sites.match(this);
-	}
 };
 
 function SitePile(value) {
@@ -92,12 +85,21 @@ SitePile.prototype = {
 		}
 	},
 	saveLocal: function(name) {
+		if (!name) {
+			name = this._storename;
+		}
 		jsonStorage.set(name, Object.keys(this._sites));
 		return this;
 	}
 };
 
 SitePile.getLocal = function(name) {
-	return new SitePile(jsonStorage.get(name));
+	var rv = new SitePile(jsonStorage.get(name));
+	rv._storename = name;
+	return rv;
+};
+
+SitePile.sites = function() {
+	return SitePile.getLocal('sites');
 };
 
