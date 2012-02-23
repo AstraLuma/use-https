@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="jquery.min.js"></script>
+        <script src="filters.js"></script>
+        <script>
+var pile = new FilterPile();
+
+function listfilters() {
+    var ful = $('#filters');
+    ful.empty();
+    pile.each(function(filter) {
+        ful.append($('<li></li>').text(filter.text + " => " + filter.fastkey));
+    });
+}
+
+$(function() {
+$('#add').click(function(ev) {
+    var f = $('#filter').val();
+    pile.add(new Filter(f));
+    $('#results').text(f+" added");
+    $('#filter').val("");
+    listfilters();
+});
+
+$('#search').click(function(ev) {
+    var res = pile.match($('#subject').val());
+    $('#results').text(res);
+});
+});
+        </script>
+        <title>Filters Test</title>
+    </head>
+    <body>
+        <div>
+            <label for="filter">Add Filter:</label> <input type="text" id="filter" /><button id="add">Add</button>
+        </div>
+        <div>
+            <label for="subject">Search:</label> <input type="text" id="subject" /><button id="search">Search</button>
+        </div>
+        <div id="results"></div>
+        <ul id="filters">
+        </ul>
+    </body>
+</html>
