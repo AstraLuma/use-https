@@ -15,7 +15,7 @@ function viewSites() {
 	var sul = $('#sites');
 	sul.empty();
 	
-	var sites = SitePile.getLocal('sites');
+	var sites = SitePile.sites();
 	var dnr = chrome.extension.getBackgroundPage().doNotRedirect;
 	sites.each(function(site) {
 		//XXX: Use a templating thing?
@@ -64,7 +64,7 @@ $(function() {
 $('#save-site').click(function() {
 
 	// Get sites from localStorage
-	var sites = SitePile.getLocal('sites');
+	var sites = SitePile.sites();
 	
 	// Get entered url
 	var site = $("#siteName").val();
@@ -78,7 +78,7 @@ $('#save-site').click(function() {
 	if(!sites.match(site)) {
 		// Add the site and save it back to localStorage
 		sites.add(site);
-		sites.saveLocal('sites');
+		sites.saveLocal();
 		redirectChanged();
 		showMessage("Added " + site + " successfully");
 	} else {
@@ -92,7 +92,7 @@ $('#save-site').click(function() {
 
 $('#delete-sites').click(function() {
 	
-	var storedSites = SitePile.getLocal('sites');
+	var storedSites = SitePile.sites();
 	var removedSites = [];
 	
 	$('#sites input').each(function(i) {
@@ -105,7 +105,7 @@ $('#delete-sites').click(function() {
 		}
 	});
 	
-	storedSites.saveLocal('sites');
+	storedSites.saveLocal();
 	redirectChanged();
 	
 	if(removedSites.length > 0 ) {

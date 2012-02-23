@@ -26,7 +26,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 		var enablePageAction = jsonStorage.get('enable-page-action');
 		
 		var po = new ProtoOrigin(tab.url);
-		var siteInList = po.inSitesList();
+		var siteInList = SitePile.sites().match(po);
 		if(!po.isSecure()) {
 			if (!siteInList) {
 				chrome.pageAction.hide(tabId);
@@ -51,19 +51,18 @@ function beforeRequest(request) {
 	var po = new ProtoOrigin(request.url);
 	if (!po.hasSecure()) return {};
 	
-	var siteInList = po.inSitesList();
+	var siteInList = SitePile.sites().match(po);
 	
 	if (!po.isSecure()) {
 		if (siteInList) {
-			if(doNotRedirect.indexOf(po.o) == -1) {
+			if(!doNotRedirect.match(po)) {
 				var surl = po.makeSecure();
 				console.log("Redirecting "+request.url+" to "+surl);
 				return {redirectUrl: surl}
-			}
-			else {
+			} else {
 				console.log("Not redirecting: "+request.url)
 			}
-		} else if (!(po.inSitesList(potentialSites) || po.inSitesList(doNotRedirect))) {
+		} else if (!(potentialSites.match(po) || doNotRedirect.match(po))) {
 			window.setTimeout(function() {
 				testUrlForHttps(po.o, function(hasHttps) {
 					if (hasHttps) {
@@ -99,19 +98,17 @@ function init() {
 	jsonStorage.setDefault('sites', ["facebook.com", "twitter.com", "google.com", "wikipedia.org"]); 
 	jsonStorage.setDefault('is-disabled', false);
 	jsonStorage.setDefault('enable-page-action', false);
-    
+	
 	potentialSites = new SitePile(jsonStorage.setDefault('potential-sites', []));
 	doNotRedirect = new SitePile(jsonStorage.setDefault('do-not-redirect', []));
 }
 
 window.setInterval(function() {
-	potentialSites.uniquify();
-	doNotRedirect.uniquify();
-	for (var i = 0; i < potentialSites.length; i++) {
-		if (doNotRedirect.indexOf(potentialSites[i]) != -1) {
-			delete potentialSites[i--];
+	potentialSites.each(function(site) {
+		if (doNotRedirect.match(site)) {
+			potentialSites.del(site);
 		}
-	}
+	});
 	potentialSites.saveLocal('potential-sites');
 	doNotRedirect.saveLocal('do-not-redirect');
 }, 1000);
