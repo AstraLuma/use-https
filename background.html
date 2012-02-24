@@ -189,7 +189,7 @@ function RaiseEvent(obj, event, args) {
 }
 
 function UpdateAllTabs(site) {
-	if (site.site) { // If it's an API event
+	if (site && site.site) { // If it's an API event
 		site = site.site;
 	}
 	if (site) {
