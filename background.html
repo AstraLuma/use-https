@@ -21,6 +21,7 @@ var API = {
 		if (sp.add(args.site)) {
 			sp.saveLocal();
 			RaiseEvent('sitelist', 'add', {site:args.site});
+			API['potentials.del'](args);
 			redirectChanged();
 		}
 	},

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Secured Version Detected</title>
+		<script src="jquery.min.js"></script>
+		<script src="api.js"></script>
+		<script>
+const SITE = document.location.search.substr(1);
+
+$('#add').click(function() {
+	UseHTTPS.sitelist.add(SITE);
+});
+		</script>
+	</head>
+	<body class="potential">
+		<h1>Secure Version Detected</h1>
+		<div>
+			<button id="add">Start Securing</button>
+		</div>
+	</body>
+</html>

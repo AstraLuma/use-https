@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Blacklisted</title>
+		<script src="jquery.min.js"></script>
+		<script src="api.js"></script>
+		<script>
+const SITE = document.location.search.substr(1);
+
+$('#remove').click(function() {
+	UseHTTPS.blacklist.del(SITE);
+});
+$('#add').click(function() {
+	UseHTTPS.blacklist.del(SITE);
+	UseHTTPS.sitelist.add(SITE);
+});
+		</script>
+	</head>
+	<body class="blacklisted">
+		<h1>Blacklisted</h1>
+		<p>This site's secure version just redirects back to the unsecure one.</p>
+		<div>
+			<button id="remove">Remove from Blacklist</button>
+		</div>
+		<div>
+			<button id="add">Start Securing</button>
+		</div>
+	</body>
+</html>
