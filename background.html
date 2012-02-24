@@ -224,7 +224,7 @@ function UpdateTab(tabId, url) {
 	
 	if (blacklisted) {
 		console.log("Blacklist tab", po);
-		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklist.html'+q});
+		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklisted.html'+q});
 		chrome.pageAction.setTitle({tabId: tabId, title: "Blacklisted"});
 		chrome.pageAction.show(tabId);
 	} else if (po.isSecure() && listed) {
