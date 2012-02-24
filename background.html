@@ -8,7 +8,6 @@ var potentialSites = new SitePile();
 // Initialize stored values
 init();
 
-//TODO: Events for changes
 var API = {
 	'sitelist': function() {
 		var rv = [];
@@ -177,7 +176,11 @@ function RaiseEvent(obj, event, args) {
 	args.$name = obj+'.'+event;
 	
 	function callit(port, i, e) {
-		port.postMessage(args);
+		if (port.postMessage) {
+			port.postMessage(args);
+		} else {
+			port(args);
+		}
 	}
 	events['*'].forEach(callit);
 	events[args.$object].forEach(callit);
@@ -185,38 +188,54 @@ function RaiseEvent(obj, event, args) {
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
-	
-	if(info.status == "loading") {
+	if (info.url) {
 		
-		var isDisabled = jsonStorage.get('is-disabled');
-		if (isDisabled) {
-			chrome.pageAction.hide(tabId)
-			return;
-		}
+		var po = new ProtoOrigin(info.url);
+		var enabled = API.enabled();
+		var listed = API['sitelist.match']({site:po});
+		var blacklisted = API['blacklist.match']({site:po});
+		var potential = API['potentials.match']({site:po});
 		
-		/*
-		 * The enablePageAction variable indicates if we show the 
-		 * Use HTTPS icon in the address bar via a page action
-		 */
-		var enablePageAction = jsonStorage.get('enable-page-action');
-		
-		var po = new ProtoOrigin(tab.url);
-		var siteInList = SitePile.sites().match(po);
-		if(!po.isSecure()) {
-			if (!siteInList) {
-				chrome.pageAction.hide(tabId);
-			}
-		} else if(enablePageAction && po.isSecure()) {
-			if(siteInList) {
-				chrome.pageAction.show(tabId);
-			}
+		// Blacklist: Show with pa_blacklist.html
+		// Secure, in list: Show with pa_secured.html
+		// Potential: Show with pa_potential.html
+		// Default: hide
+		// All cases: Gray if disabled
+		var icon = 'lock-16.png'; // For the future: Different states have different icons
+		if (blacklisted) {
+			console.log("Blacklist tab", po);
+			chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklist.html'});
+			chrome.pageAction.setTitle({tabId: tabId, title: "Blacklisted"});
+			chrome.pageAction.show(tabId);
+		} else if (po.isSecure() && listed) {
+			console.log("Secured tab", po);
+			chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_secured.html'});
+			chrome.pageAction.setTitle({tabId: tabId, title: "Secured"});
+			chrome.pageAction.show(tabId);
+		} else if (potential) {
+			console.log("Potential tab", po);
+			chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_potential.html'});
+			chrome.pageAction.setTitle({tabId: tabId, title: "Potential"});
+			chrome.pageAction.show(tabId);
 		} else {
-			
 			chrome.pageAction.hide(tabId);
+		}
+		if (enabled) {
+			chrome.pageAction.setIcon({
+				tabId: tabId, 
+				path: chrome.extension.getURL(icon)
+			});
+		} else {
+			chrome.pageAction.setIcon({
+				tabId: tabId, 
+				path: chrome.extension.getURL(icon)+'?grayscale=true'
+			});
+			console.log(chrome.extension.getURL(icon)+'?grayscale=true');
 		}
 	}
 });
 
+//TODO: Update pageAction on changes
 function doPotentialSite(po) {
 	testUrlForHttps(po.o, function(hasHttps) {
 		if (hasHttps) {
@@ -276,7 +295,6 @@ function redirectChanged() {
 function init() {
 	jsonStorage.setDefault('sites', ["facebook.com", "twitter.com", "google.com", "wikipedia.org"]); 
 	jsonStorage.setDefault('is-disabled', false);
-	jsonStorage.setDefault('enable-page-action', false);
 	jsonStorage.setDefault('potential-sites', []);
 	jsonStorage.setDefault('do-not-redirect', []);
 	

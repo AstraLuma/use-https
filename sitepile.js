@@ -27,6 +27,10 @@ ProtoOrigin.prototype = {
 	makeSecure: function() {
 		return this.url.replace("http://", "https://");
 	},
+	
+	toString: function() {
+		return "[ProtoOrigin "+this.p+" "+this.o+"]";
+	}
 };
 
 function SitePile(value) {
