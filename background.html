@@ -189,7 +189,7 @@ function RaiseEvent(obj, event, args) {
 }
 
 function UpdateAllTabs(site) {
-	if (site.site) { // If it's an API event
+	if (site && site.site) { // If it's an API event
 		site = site.site;
 	}
 	if (site) {
@@ -198,7 +198,7 @@ function UpdateAllTabs(site) {
 		qi = {};
 	}
 	chrome.tabs.query(qi, function(tabs) {
-		tabs.forEach(funtion(tab) {
+		tabs.forEach(function(tab) {
 			UpdateTab(tab.id, tab.url);
 		});
 	});
@@ -224,7 +224,7 @@ function UpdateTab(tabId, url) {
 	
 	if (blacklisted) {
 		console.log("Blacklist tab", po);
-		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklist.html'+q});
+		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklisted.html'+q});
 		chrome.pageAction.setTitle({tabId: tabId, title: "Blacklisted"});
 		chrome.pageAction.show(tabId);
 	} else if (po.isSecure() && listed) {
@@ -324,6 +324,7 @@ function init() {
 	
 	potentialSites = SitePile.getLocal('potential-sites');
 	doNotRedirect = SitePile.getLocal('do-not-redirect');
+	UpdateAllTabs();
 }
 
 window.setInterval(function() {
