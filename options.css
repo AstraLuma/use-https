@@ -27,7 +27,7 @@ input[type=checkbox] + label {
 h1 {
 }
 h1::before {
-	content: url(lock-64.png);
+	content: url(chrome://extension-icon/__MSG_@@extension_id__/64/1);
 	display: inline-block;
 	vertical-align: middle;
 	margin-right: 3px;
