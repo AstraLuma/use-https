@@ -1,4 +1,3 @@
-<script src="utils.js"></script>
 <script src="jsonstore.js"></script>
 <script src="sitepile.js"></script>
 <script>
@@ -8,6 +7,182 @@ var potentialSites = new SitePile();
 
 // Initialize stored values
 init();
+
+//TODO: Events for changes
+var API = {
+	'sitelist': function() {
+		var rv = [];
+		SitePile.sites().each(function(site) {
+			rv.push(site);
+		});
+		return rv;
+	},
+	'sitelist.add': function(args) {
+		var sp = SitePile.sites();
+		if (sp.add(args.site)) {
+			sp.saveLocal();
+			RaiseEvent('sitelist', 'add', {site:args.site});
+			redirectChanged();
+		}
+	},
+	'sitelist.del': function(args) {
+		var sp = SitePile.sites();
+		if (sp.del(args.site)) {
+			sp.saveLocal();
+			RaiseEvent('sitelist', 'del', {site:args.site});
+			redirectChanged();
+		}
+	},
+	'sitelist.clear': function() {
+		var sp = SitePile.sites();
+		sp.clear();
+		sp.saveLocal();
+		RaiseEvent('sitelist', 'clear', {});
+		redirectChanged();
+	},
+	'sitelist.match': function(args) {
+		var sp = SitePile.sites();
+		return sp.match(args.site);
+	},
+	'potentials': function() {
+		var rv = [];
+		potentialSites.each(function(site) {
+			rv.push(site);
+		});
+		return rv;
+	},
+	'potentials.add': function(args) {
+		if (doNotRedirect.match(args.site)) {
+			return;
+		}
+		if (potentialSites.add(args.site)) {
+			RaiseEvent('potentials', 'add', {site:args.site});
+		}
+	},
+	'potentials.del': function(args) {
+		if (potentialSites.del(args.site)) {
+			RaiseEvent('potentials', 'del', {site:args.site});
+		}
+	},
+	'potentials.clear': function() {
+		potentialSites.clear();
+		RaiseEvent('potentials', 'clear', {});
+	},
+	'potentials.match': function(args) {
+		return potentialSites.match(args.site);
+	},
+	'blacklist': function() {
+		var rv = [];
+		doNotRedirect.each(function(site) {
+			rv.push(site);
+		});
+		return rv;
+	},
+	'blacklist.add': function(args) {
+		if (doNotRedirect.add(args.site)) {
+			RaiseEvent('blacklist', 'add', {site:args.site});
+			API['potentials.del'](args);
+			redirectChanged();
+		}
+	},
+	'blacklist.del': function(args) {
+		if (doNotRedirect.del(args.site)) {
+			RaiseEvent('blacklist', 'del', {site:args.site});
+			redirectChanged();
+		}
+	},
+	'blacklist.clear': function() {
+		doNotRedirect.clear();
+		RaiseEvent('blacklist', 'clear', {});
+		redirectChanged();
+	},
+	'blacklist.match': function(args) {
+		return doNotRedirect.match(args.site);
+	},
+	'clearAll': function() {
+		API['potentials.clear']();
+		API['blacklist.clear']();
+	},
+	'enabled': function() {
+		return !jsonStorage.get('is-disabled');
+	},
+	'enabled.set': function(args) {
+		var old = API.enabled();
+		if (old != args.value) {
+			jsonStorage.set('is-disabled', !args.value);
+			RaiseEvent('enabled', 'set', {value:args.value});
+			redirectChanged();
+		}
+	},
+	'haspotential': function(args, response) {
+		testUrlForHttps(args.site, function(hasit) {
+			response(hasit);
+		});
+		return {$async: true};
+	}
+};
+
+function onRequest(request, sender, sendResponse) {
+	console.log("Request: ", request);
+	var func = request.$name;
+	if (func[0] == '$' || !API[func]) {
+		sendResponse({$error: new ReferenceError(func + " is not a valid API method")});
+		return;
+	}
+	var rv = API[func](request, sendResponse);
+	if (typeof rv == 'object' && rv.$async) {
+		// The function will handle calling the response when it's ready.
+	} else {
+		sendResponse(rv);
+	}
+}
+chrome.extension.onRequest.addListener(onRequest);
+chrome.extension.onRequestExternal.addListener(onRequest);
+
+var events = {
+	'*': [],
+	'sitelist': [],
+	'sitelist.add': [],
+	'sitelist.del': [],
+	'sitelist.clear': [],
+	'potentials': [],
+	'potentials.add': [],
+	'potentials.del': [],
+	'potentials.clear': [],
+	'blacklist': [],
+	'blacklist.add': [],
+	'blacklist.del': [],
+	'blacklist.clear': [],
+	'enabled': [],
+	'enabled.set': [],
+};
+
+function onConnect(port) {
+	var name = '*';
+	if (port.name) {
+		name = port.name;
+	}
+	events[name].push(port);
+	port.onDisconnect.addListener(function() {
+		var i = events[name].indexOf(port);
+		delete events[name][port];
+	});
+}
+chrome.extension.onConnect.addListener(onConnect);
+chrome.extension.onConnectExternal.addListener(onConnect);
+
+function RaiseEvent(obj, event, args) {
+	args.$object = obj;
+	args.$event = event;
+	args.$name = obj+'.'+event;
+	
+	function callit(port, i, e) {
+		port.postMessage(args);
+	}
+	events['*'].forEach(callit);
+	events[args.$object].forEach(callit);
+	events[args.$name].forEach(callit);
+}
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	
@@ -42,6 +217,15 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	}
 });
 
+function doPotentialSite(po) {
+	testUrlForHttps(po.o, function(hasHttps) {
+		if (hasHttps) {
+			console.log("Potential site: "+po.o);
+			API['potentials.add']({site:po.o});
+		}
+	});
+}
+
 function beforeRequest(request) {
 	if (!request) return {}; // on handlerBehaviorChanged() 
 	
@@ -64,12 +248,7 @@ function beforeRequest(request) {
 			}
 		} else if (!(potentialSites.match(po) || doNotRedirect.match(po))) {
 			window.setTimeout(function() {
-				testUrlForHttps(po.o, function(hasHttps) {
-					if (hasHttps) {
-						console.log("Potential site: "+po.o);
-						potentialSites.add(po);
-					}
-				});
+				doPotentialSite(po);
 			}, 0);
 		}
 	}
@@ -84,7 +263,7 @@ function beforeRedirect(details) {
 	// FIXME: Check for subdomains (eg, tumblr.com -> www.tumblr.com)
 	if (frompo.o == topo.o && frompo.isSecure() && !topo.isSecure()) {
 		console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
-		doNotRedirect.add(frompo);
+		API['blacklist.add']({site:frompo.o});
 	}
 }
 chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, {urls: ['https://*/*']});
@@ -98,19 +277,16 @@ function init() {
 	jsonStorage.setDefault('sites', ["facebook.com", "twitter.com", "google.com", "wikipedia.org"]); 
 	jsonStorage.setDefault('is-disabled', false);
 	jsonStorage.setDefault('enable-page-action', false);
+	jsonStorage.setDefault('potential-sites', []);
+	jsonStorage.setDefault('do-not-redirect', []);
 	
-	potentialSites = new SitePile(jsonStorage.setDefault('potential-sites', []));
-	doNotRedirect = new SitePile(jsonStorage.setDefault('do-not-redirect', []));
+	potentialSites = SitePile.getLocal('potential-sites');
+	doNotRedirect = SitePile.getLocal('do-not-redirect');
 }
 
 window.setInterval(function() {
-	potentialSites.each(function(site) {
-		if (doNotRedirect.match(site)) {
-			potentialSites.del(site);
-		}
-	});
-	potentialSites.saveLocal('potential-sites');
-	doNotRedirect.saveLocal('do-not-redirect');
+	potentialSites.saveLocal();
+	doNotRedirect.saveLocal();
 }, 1000);
 
 var urlCache = {};

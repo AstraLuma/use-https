@@ -10,62 +10,108 @@ function appendMessage(msg) {
 	$('#message').text($('#message').text() + msg);
 }
 
+function mkSiteItem(site) {
+		//XXX: Use a templating thing?
+	var new_element = $("<li><input type='checkbox' name='" + site + "' value='" + site + "' />&nbsp;" + site+"</li>");
+	UseHttps.blacklist.match(site, (function(yup) {
+		if (yup)
+			this.addClass("blacklisted");
+	}).bind(new_element));
+	return new_element;
+}
+
+UseHttps.sitelist.connect('add', function(args) {
+	$('#sites').append(mkSiteItem(args.site));
+});
+
+UseHttps.sitelist.connect('del', function(args) {
+	$('#sites li input').filter(function(i) {
+		return $(this).attr('name') == args.site;
+	}).parent().remove();
+});
+
+UseHttps.sitelist.connect('clear', function(args) {
+	$('#sites').empty();
+});
+
+
+function addPotentialItem(site) {
+	$('#potsites').append($('<span title="Add"></span>').text(site).click(function() {
+		$('#siteName').val($(this).text());
+		$('#save-site').click();
+	}));
+	$('#potsites').append(' ');
+}
+
+UseHttps.potentials.connect('add', function(args) {
+	addPotentialItem(args.site);
+});
+
+UseHttps.potentials.connect('del', function(args) {
+	$('#potsites span').filter(function() { 
+		return $(this).text() == args.site;
+	}).remove();
+});
+
+UseHttps.potentials.connect('clear', function(args) {
+	$('#potsites').empty();
+});
+
+function addDnrItem(site) {
+	$('#dnr').append($('<span title="Remove"></span>').text(site).click(function() {
+		chrome.extension.getBackgroundPage().doNotRedirect.del($(this).text());
+		this.parentNode.removeChild(this);
+		viewSites();
+	}));
+	$('#dnr').append(' ');
+}
+
+UseHttps.blacklist.connect('add', function(args) {
+	addDnrItem(args.site);
+});
+
+UseHttps.blacklist.connect('del', function(args) {
+	$('#dnr span').filter(function() { 
+		return $(this).text() == args.site;
+	}).remove();
+});
+
+UseHttps.blacklist.connect('clear', function(args) {
+	$('#dnr').empty();
+});
+
 function viewSites() {
-	
 	var sul = $('#sites');
 	sul.empty();
 	
-	var sites = SitePile.sites();
-	var dnr = chrome.extension.getBackgroundPage().doNotRedirect;
-	sites.each(function(site) {
-		//XXX: Use a templating thing?
-		var new_element = $("<li><input type='checkbox' name='" + site + "' value='" + site + "' />&nbsp;" + site+"</li>");
-		if (dnr.match(site)) {
-			new_element.addClass("blacklisted");
-		}
-		sul.append(new_element);
+	UseHttps.sitelist.each(function(site) {
+		sul.append(mkSiteItem(site));
 	});
 	
 	$('#potsites').empty();
-	var potentialSites = chrome.extension.getBackgroundPage().potentialSites;
-	potentialSites.each(function(site) {
-		$('#potsites').append($('<span title="Add"></span>').text(site).click(function() {
-			$('#siteName').val($(this).text());
-			$('#save-site').click();
-		}));
-		$('#potsites').append(' ');
-	});
+	UseHttps.potentials.each(addPotentialItem);
 	
 	$('#dnr').empty();
-	var doNotRedirect = chrome.extension.getBackgroundPage().doNotRedirect;
-	doNotRedirect.each(function(site) {
-		$('#dnr').append($('<span title="Remove"></span>').text(site).click(function() {
-			chrome.extension.getBackgroundPage().doNotRedirect.del($(this).text());
-			this.parentNode.removeChild(this);
-			viewSites();
-		}));
-		$('#dnr').append(' ');
-	});
+	UseHttps.blacklist.each(addDnrItem);
 }
+
+UseHttps.enabled.connect('set', function(args) {
+	$('#is-disabled-input').attr('checked', !args.value);
+});
 
 function init() {
 	
 	viewSites();
 	
 	// Initialize sites enabled flag
-	if (jsonStorage.get('is-disabled'))
-		$('#is-disabled-input').attr('checked', true);
-	if (jsonStorage.get('enable-page-action'))
-		$('#enable-page-action-input').attr('checked', true);
+	UseHttps.enabled.get(function(yup) {
+		$('#is-disabled-input').attr('checked', !yup);
+	});
 }
 $(init);
 
 $(function() {
 $('#save-site').click(function() {
-
-	// Get sites from localStorage
-	var sites = SitePile.sites();
-	
 	// Get entered url
 	var site = $("#siteName").val();
 	$("#siteName").val("");
@@ -75,77 +121,46 @@ $('#save-site').click(function() {
 	}
 	
 	// Check if we already have the new site
-	if(!sites.match(site)) {
-		// Add the site and save it back to localStorage
-		sites.add(site);
-		sites.saveLocal();
-		redirectChanged();
-		showMessage("Added " + site + " successfully");
-	} else {
-		showMessage(site + " is already protected");
-	}
+	UseHttps.sitelist.add(site, function(added) {
+		if (added) {
+			showMessage("Added " + site + " successfully");
+		} else {
+			showMessage(site + " is already protected");
+		}
+	});
 	
-	chrome.extension.getBackgroundPage().potentialSites.del(site);
-	
-	viewSites();
+	UseHttps.potentials.del(site);
 });
 
 $('#delete-sites').click(function() {
 	
-	var storedSites = SitePile.sites();
 	var removedSites = [];
 	
-	$('#sites input').each(function(i) {
-		if(this.checked) {
-			var siteName = this.name;
-			console.log(siteName);
-			storedSites.del(siteName);
-			console.log(storedSites);
-			removedSites.push(siteName);
-		}
+	$('#sites input:checked').each(function(i) {
+		var siteName = this.name;
+		UseHttps.sitelist.del(siteName);
+		removedSites.push(siteName);
 	});
-	
-	storedSites.saveLocal();
-	redirectChanged();
 	
 	if(removedSites.length > 0 ) {
 		showMessage("Removed the following site(s): " + removedSites);
 	}
-	
-	viewSites();
 });
 
 $('#is-disabled-input').click(function() {
 	
 	var isDisabled = $('#is-disabled-input').is(':checked');
 	
+	UseHttps.enabled.set(!isDisabled);
 	if(isDisabled) {
-		jsonStorage.set('is-disabled', true);
 		showMessage("Disabled 'Use HTTPS' for all site(s)");
 	} else {
-		jsonStorage.set('is-disabled', false);
 		showMessage("Enabled 'Use HTTPS' for all site(s)");
-	}
-	redirectChanged();
-});
-
-$('#enable-page-action-input').click(function() {
-	
-	var enablePageAction = $('#enable-page-action-input').is(':checked');
-	
-	if(enablePageAction) {
-		jsonStorage.set('enable-page-action', true);
-		showMessage("Enabled show 'Use HTTPS' icon in address bar");
-	} else {
-		jsonStorage.set('enable-page-action', false);
-		showMessage("Disabled show 'Use HTTPS' icon in address bar");
 	}
 });
 
 $('#clear-lists').click(function() {
-	chrome.extension.getBackgroundPage().doNotRedirect.clear();
-	chrome.extension.getBackgroundPage().potentialSites.clear();
-	init();
+	UseHttps.clearAll();
 });
 
 $('#test-url-for-https').click(function() {
@@ -156,9 +171,9 @@ $('#test-url-for-https').click(function() {
 		return;
 	}
 	
-	showMessage("Testing if [ https://" + url +" ] supports HTTPS: ");
+	showMessage("Testing if [ " + url +" ] supports HTTPS: ");
 	
-	chrome.extension.getBackgroundPage().testUrlForHttps(url, function(hasHttps) {
+	UseHttps.haspotential(url, function(hasHttps) {
 		if (hasHttps) {
 			appendMessage("YES");
 		}
