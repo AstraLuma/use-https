@@ -164,7 +164,7 @@ function onConnect(port) {
 	events[name].push(port);
 	port.onDisconnect.addListener(function() {
 		var i = events[name].indexOf(port);
-		delete events[name][port];
+		delete events[name][i];
 	});
 }
 chrome.extension.onConnect.addListener(onConnect);
@@ -230,7 +230,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 				tabId: tabId, 
 				path: chrome.extension.getURL(icon)+'?grayscale=true'
 			});
-			console.log(chrome.extension.getURL(icon)+'?grayscale=true');
 		}
 	}
 });
