@@ -293,12 +293,18 @@ function beforeRequest(request) {
 }
 chrome.webRequest.onBeforeRequest.addListener(beforeRequest, {urls: ['http://*/*'], types: ['main_frame']}, ["blocking"]);
 
+function isSubDomain(sub, dom) {
+	if (sub == dom) return true;
+	if (dom != sub.substr(-dom.length)) return false;
+	return sub[dom.length] == '.';
+}
+
 function beforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
 	var frompo = new ProtoOrigin(details.url),
 	    topo = new ProtoOrigin(details.redirectUrl);
 	// FIXME: Check for subdomains (eg, tumblr.com -> www.tumblr.com)
-	if (frompo.o == topo.o && frompo.isSecure() && !topo.isSecure()) {
+	if (isSubDomain(topo.o, frompo.o) && frompo.isSecure() && !topo.isSecure()) {
 		console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
 		API['blacklist.add']({site:frompo.o});
 	}
