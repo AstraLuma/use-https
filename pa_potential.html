@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Secured Version Detected</title>
+		<title>Secure Version Detected</title>
+		<link type="stylesheet" type="text/css" href="pageactions.css">
 		<script src="jquery.min.js"></script>
 		<script src="api.js"></script>
 		<script>
 const SITE = document.location.search.substr(1);
 
-$('#add').click(function() {
+$(function() {
+$('#add-sl').click(function() {
 	UseHTTPS.sitelist.add(SITE);
+});
 });
 		</script>
 	</head>
 	<body class="potential">
 		<h1>Secure Version Detected</h1>
 		<div>
-			<button id="add">Start Securing</button>
+			<button id="add-sl">Start Securing</button>
 		</div>
 	</body>
 </html>

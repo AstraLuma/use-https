@@ -1,0 +1,15 @@
+.secured {
+	background: #c4ffc4;
+}
+
+.potential {
+	background: #fcffa1;
+}
+
+.blacklisted {
+	background: #ffabab;
+}
+
+button {
+	text-align: center;
+}
