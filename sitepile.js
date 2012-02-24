@@ -21,7 +21,7 @@ ProtoOrigin.prototype = {
 	 * Is the given URL secure?
 	 */
 	isSecure: function() {
-		return this.p == 'https';
+		return this.p == 'https' && this.o.indexOf(':') == -1;
 	},
 	
 	makeSecure: function() {
@@ -44,8 +44,9 @@ SitePile.prototype = {
 		if (site instanceof ProtoOrigin) {
 			site = site.o;
 		}
+		var rv = typeof this._sites[site] == "undefined";
 		this._sites[site] = true;
-		return this;
+		return rv;
 	},
 	append: function(pile) {
 		var sites;
@@ -56,22 +57,23 @@ SitePile.prototype = {
 		} else {
 			sites = Object.keys(pile);
 		}
+		var rv = 0;
 		for (var i in sites) {
-			this.add(sites[i]);
+			rv += this.add(sites[i])?1:0;
 		}
 		
-		return this;
+		return rv;
 	},
 	del: function(site) {
 		if (site instanceof ProtoOrigin) {
 			site = site.o;
 		}
+		var rv = typeof this._sites[site] != 'undefined';
 		delete this._sites[site];
-		return this;
+		return rv;
 	},
 	clear: function() {
 		this._sites = {};
-		return this;
 	},
 	match: function(site) {
 		if (site instanceof ProtoOrigin) {
@@ -89,7 +91,6 @@ SitePile.prototype = {
 			name = this._storename;
 		}
 		jsonStorage.set(name, Object.keys(this._sites));
-		return this;
 	}
 };
 
