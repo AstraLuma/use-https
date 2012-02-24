@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>Blacklisted</title>
-		<link type="stylesheet" type="text/css" href="pageactions.css">
+		<link rel="stylesheet" type="text/css" href="pageactions.css">
 		<script src="jquery.min.js"></script>
 		<script src="api.js"></script>
 		<script>
@@ -10,12 +10,12 @@ const SITE = document.location.search.substr(1);
 
 $(function() {
 $('#remove-bl').click(function() {
-	UseHTTPS.blacklist.del(SITE);
+	UseHttps.blacklist.del(SITE);
 });
 
 $('#add-sl').click(function() {
-	UseHTTPS.blacklist.del(SITE);
-	UseHTTPS.sitelist.add(SITE);
+	UseHttps.blacklist.del(SITE);
+	UseHttps.sitelist.add(SITE);
 });
 });
 		</script>

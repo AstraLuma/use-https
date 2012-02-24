@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>Site Secured</title>
-		<link type="stylesheet" type="text/css" href="pageactions.css">
+		<link rel="stylesheet" type="text/css" href="pageactions.css">
 		<script src="jquery.min.js"></script>
 		<script src="api.js"></script>
 		<script>
@@ -17,13 +17,13 @@ $('#remove-sl').click(function() {
 });
 		
 $('#confirm-sl').click(function() {
-	UseHTTPS.sitelist.del(SITE);
+	UseHttps.sitelist.del(SITE);
 });
 });
 		</script>
 		<style>
 #confirm-sl {
-	visibility: hidden;
+	display: none;
 }
 		</style>
 	</head>
@@ -32,7 +32,7 @@ $('#confirm-sl').click(function() {
 		<p>When you visit this site, HTTPS will be used.</p>
 		<div>
 			<button id="remove-sl">Stop Securing</button>
-			<buttion id="confirm-sl">Yes, I'm Sure</button>
+			<button id="confirm-sl">Yes, I'm Sure</button>
 		</div>
 	</body>
 </html>
