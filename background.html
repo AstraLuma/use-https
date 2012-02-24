@@ -198,7 +198,7 @@ function UpdateAllTabs(site) {
 		qi = {};
 	}
 	chrome.tabs.query(qi, function(tabs) {
-		tabs.forEach(funtion(tab) {
+		tabs.forEach(function(tab) {
 			UpdateTab(tab.id, tab.url);
 		});
 	});
