@@ -118,7 +118,7 @@ var API = {
 			response(hasit);
 		});
 		return {$async: true};
-	}
+	},
 };
 
 function onRequest(request, sender, sendResponse) {
@@ -187,50 +187,68 @@ function RaiseEvent(obj, event, args) {
 	events[args.$name].forEach(callit);
 }
 
+function UpdateAllTabs(site) {
+	if (site.site) { // If it's an API event
+		site = site.site;
+	}
+	if (site) {
+		qi = {url: '*://'+site+'/*'};
+	} else {
+		qi = {};
+	}
+	chrome.tabs.query(qi, function(tabs) {
+		tabs.forEach(funtion(tab) {
+			UpdateTab(tab.id, tab.url);
+		});
+	});
+}
+events['*'].push(UpdateAllTabs);
+
+function UpdateTab(tabId, url) {
+	var po = new ProtoOrigin(url);
+	var enabled = API.enabled();
+	var listed = API['sitelist.match']({site:po});
+	var blacklisted = API['blacklist.match']({site:po});
+	var potential = API['potentials.match']({site:po});
+	
+	// Blacklist: Show with pa_blacklist.html
+	// Secure, in list: Show with pa_secured.html
+	// Potential: Show with pa_potential.html
+	// Default: hide
+	// All cases: Gray if disabled
+	
+	 // For the future: Different states have different icons
+	var icon = 'chrome://extension-icon/'+chrome.i18n.getMessage('@@extension_id')+'/16/2';
+	const q = '?'+po.o;
+	
+	if (blacklisted) {
+		console.log("Blacklist tab", po);
+		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklist.html'+q});
+		chrome.pageAction.setTitle({tabId: tabId, title: "Blacklisted"});
+		chrome.pageAction.show(tabId);
+	} else if (po.isSecure() && listed) {
+		console.log("Secured tab", po);
+		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_secured.html'+q});
+		chrome.pageAction.setTitle({tabId: tabId, title: "Secured"});
+		chrome.pageAction.show(tabId);
+	} else if (potential) {
+		console.log("Potential tab", po);
+		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_potential.html'+q});
+		chrome.pageAction.setTitle({tabId: tabId, title: "Potential"});
+		chrome.pageAction.show(tabId);
+	} else {
+		chrome.pageAction.hide(tabId);
+	}
+	if (enabled) {
+		chrome.pageAction.setIcon({tabId: tabId, path: icon});
+	} else {
+		chrome.pageAction.setIcon({tabId: tabId, path: icon+'?grayscale=true'});
+	}
+}
+
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	if (info.url) {
-		
-		var po = new ProtoOrigin(info.url);
-		var enabled = API.enabled();
-		var listed = API['sitelist.match']({site:po});
-		var blacklisted = API['blacklist.match']({site:po});
-		var potential = API['potentials.match']({site:po});
-		
-		// Blacklist: Show with pa_blacklist.html
-		// Secure, in list: Show with pa_secured.html
-		// Potential: Show with pa_potential.html
-		// Default: hide
-		// All cases: Gray if disabled
-		var icon = 'lock-16.png'; // For the future: Different states have different icons
-		if (blacklisted) {
-			console.log("Blacklist tab", po);
-			chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklist.html'});
-			chrome.pageAction.setTitle({tabId: tabId, title: "Blacklisted"});
-			chrome.pageAction.show(tabId);
-		} else if (po.isSecure() && listed) {
-			console.log("Secured tab", po);
-			chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_secured.html'});
-			chrome.pageAction.setTitle({tabId: tabId, title: "Secured"});
-			chrome.pageAction.show(tabId);
-		} else if (potential) {
-			console.log("Potential tab", po);
-			chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_potential.html'});
-			chrome.pageAction.setTitle({tabId: tabId, title: "Potential"});
-			chrome.pageAction.show(tabId);
-		} else {
-			chrome.pageAction.hide(tabId);
-		}
-		if (enabled) {
-			chrome.pageAction.setIcon({
-				tabId: tabId, 
-				path: chrome.extension.getURL(icon)
-			});
-		} else {
-			chrome.pageAction.setIcon({
-				tabId: tabId, 
-				path: chrome.extension.getURL(icon)+'?grayscale=true'
-			});
-		}
+		UpdateTab(tabId, info.url);
 	}
 });
 
