@@ -248,8 +248,8 @@ function UpdateTab(tabId, url) {
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
-	if (info.url) {
-		UpdateTab(tabId, info.url);
+	if (info.url || info.status == "loading") {
+		UpdateTab(tabId, tab.url);
 	}
 });
 
