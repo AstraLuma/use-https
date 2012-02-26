@@ -120,3 +120,14 @@ const UseHttps = {
 };
 Object.freeze(UseHttps);
 
+
+// Doesn't belong here, but convenient
+$(function() {
+	$('body').append(
+		$("<a style='text-align: center; display: block;' href='https://github.com/astronouth7303/use-https/issues'>File a Bug</a>")
+		.click(function(evt) {
+			chrome.tabs.create({url: this.href});
+			evt.preventDefault();
+		})
+	);
+});
