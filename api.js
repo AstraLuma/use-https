@@ -35,6 +35,13 @@ const UseHttps = {
 		all: function(cb) {
 			chrome.extension.sendRequest({$name: 'site.all'}, cb);
 		},
+		each: function(cb) {
+			UseHttps.site.all(function(sites) {
+				sites.forEach(function(site) {
+					cb(site);
+				});
+			});
+		},
 		get: function(site, cb) {
 			chrome.extension.sendRequest({$name: 'site.get', site:site}, cb);
 		},
