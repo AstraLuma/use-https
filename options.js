@@ -1,3 +1,4 @@
+//TODO: Add some indicator of working, based on a semaphore of tasks in progress
 function showMessage(msg) {
 	$('#message').text(msg);
 }
@@ -28,6 +29,7 @@ function mkSiteItem(site) {
 }
 
 UseHttps.site.connect('add', function(args) {
+	//TODO: Sorting
 	$('#sites tbody').append(mkSiteItem(args));
 });
 
