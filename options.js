@@ -8,13 +8,23 @@ function appendMessage(msg) {
 
 function mkSiteItem(site) {
 	//XXX: Use a templating thing?
-	//FIXME: Hook in events
-	return $("<tr></tr>").attr('data-site', site.site).attr('data-status', site.status)
-		.append($("<td><input type='checkbox'></td>"))
+	var row = $("<tr></tr>").attr('data-site', site.site).attr('data-status', site.status)
+		.append($("<th><input type='checkbox'></th>"))
 		.append($("<th></th>").text(site.site))
-		.append($("<td><img class='secure' src='icon-secure.png'></td>"))
-		.append($("<td><img class='potential' src='icon-potential.png'></td>"))
-		.append($("<td><img class='blacklist' src='icon-blacklist.png'></td>"));
+		.append($("<td class='secure'><img src='icon-secure.png'></td>"))
+		.append($("<td class='potential'><img src='icon-potential.png'></td>"))
+		.append($("<td class='blacklist'><img src='icon-blacklist.png'></td>"))
+		.append($("<td class='delete'><img src='icon-delete.png'></td>"))
+		;
+	$('td', row).click(function(evt) {
+		var site = this.parentNode.attributes['data-site'];
+		if (this.className == 'delete') {
+			UseHTTPS.site.del(site);
+		} else if (this.className) {
+			UseHTTPS.site.set(site, {status: this.className});
+		}
+	});
+	return row;
 }
 
 UseHttps.site.connect('add', function(args) {

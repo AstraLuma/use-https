@@ -37,17 +37,28 @@ h1::before {
 	height:40px;
 }
 
-[data-status=potential] {
+[data-status=potential] th {
     border-color: #2A2;
     background: #EFE;
 }
 
-[data-status=blacklist] {
+[data-status=blacklist] th {
     border-color:  #F22;
     background: #FEE;
 }
 
 /* TODO: Figure out how to style image buttons */
-[data-site] img {
+[data-site] td:not(.delete) {
+	opacity: 50%;
 	cursor: pointer;
+}
+
+td.delete {
+	cursor: pointer;
+}
+
+[data-status=secure] .secure,
+[data-status=potential] .potential,
+[data-status=blacklist] .blacklist {
+	opacity: 100%;
 }
