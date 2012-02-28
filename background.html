@@ -28,7 +28,7 @@ var API = {
 		}
 		return site;
 	},
-	'site.new': function(args) {
+	'site.add': function(args) {
 		console.assert(args.site[0] != '$');
 		console.assert(args.status);
 		if (jsonStorage.has(args.site)) return false;
