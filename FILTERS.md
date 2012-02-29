@@ -56,7 +56,7 @@ Internal. Call cb for each filter whose fastkey matches txt. If cb returns true,
 
 FilterPile structure
 --------------------
-Store as a tree, where each character in the fastkey is an identifier. That is, fastkey of 'foo' gets stored to ['f']['o']['o'].
+Store filters in a trie by their fastkey. That is, fastkey of 'foo' gets stored to ['f']['o']['o'].
 
 ```javascript
 fl._filters = {
@@ -77,43 +77,36 @@ fl._filters = {
 
 ```javascript
 /// Basic idea for how to iterate.
-function _walk_child(txt, idx, node, cb) {
-    var i, child;
-    if (txt.length == idx) {
-        child = node[0]; // Reached the end of the string
-    } else {
-        child = node[txt[idx]];
-    }
-    switch (typeof child) {
-        case "undefined":
-            child = node[0];
-            // Fall through
-        case "array":
-            for (i in child) {
-                if (cb(child[i])) return true;
-            }
-            break;
-        
-        case "object":
-            return this._walk_child(txt, idx+1, child, cb);
-    }
-    return false;
+function _walk_child(subject, idx, node, cb) {
+	var i, child;
+	if (subject.length > idx) {
+		child = node[subject[idx]];
+	}
+
+	if (typeof child != "undefined") {
+		if (child instanceof Array) {
+			for (i in child) {
+				if (cb(child[i])) return true;
+			}
+		} else {
+			if (this._walk_child(subject, idx+1, child, cb)) return true;
+		}
+	}
+	return false;
 }
 
 /// Top level walking
-function _walk(txt, cb) {
-    var c, i, node;
-    var data = this._data
-    for (c in data) {
-        if (c === 0) continue;
-        i = txt.indexOf(c);
-        if (i != -1) {
-            if (this._walk_child(txt, i+1, data[c], cb)) return;
-        }
-    }
-    node = data[0];
-    for (c in node) {
-        if (cb(child[i])) return;
-    }
+function _walk(subject, cb) {
+	var c, i, node;
+	var data = this._f;
+	for (i = 0; i < subject.length; i++) {
+		c = subject[i];
+		node = data[c];
+		if (node) {
+			if (this._walk_child(subject, i+1, node, cb)) return;
+		}
+	}
 }
 ```
+
+* I estimate that this performas at O(m*l*h^2), where m is the length of the subject, l is the length of the fastkey, and h is the Big-O of each node.
