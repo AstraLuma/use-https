@@ -171,7 +171,7 @@ function onConnect(port) {
 chrome.extension.onConnect.addListener(onConnect);
 chrome.extension.onConnectExternal.addListener(onConnect);
 
-function localConnect(event, func) {
+function localConnect(name, func) {
 	events[name].push(func);
 }
 
