@@ -171,6 +171,10 @@ function onConnect(port) {
 chrome.extension.onConnect.addListener(onConnect);
 chrome.extension.onConnectExternal.addListener(onConnect);
 
+function localConnect(event, func) {
+	events[name].push(func);
+}
+
 function RaiseEvent(obj, event, args) {
 	args.$object = obj;
 	args.$event = event;
@@ -203,7 +207,7 @@ function UpdateAllTabs(site) {
 		});
 	});
 }
-events['*'].push(UpdateAllTabs);
+localConnect('*', UpdateAllTabs);
 
 function UpdateTab(tabId, url) {
 	var po = new ProtoOrigin(url);
@@ -256,7 +260,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
 	}
 });
 
-//TODO: Update pageAction on changes
 function doPotentialSite(po) {
 	testUrlForHttps(po.o, function(hasHttps) {
 		if (hasHttps) {
