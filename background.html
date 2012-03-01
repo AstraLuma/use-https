@@ -33,7 +33,7 @@ var API = {
 		console.assert(args.status);
 		if (jsonStorage.has(args.site)) return false;
 		jsonStorage.set(args.site, args);
-		RaiseEvent('site', 'new', args);
+		RaiseEvent('site', 'add', args);
 		redirectChanged();
 		return true;
 	},
@@ -278,7 +278,7 @@ function doPotentialSite(po) {
 	testUrlForHttps(po.o, function(hasHttps) {
 		if (hasHttps) {
 			console.log("Potential site: "+po.o);
-			API['site.set']({site:po.o, status:'potential'});
+			API['site.add']({site:po.o, status:'potential'});
 		}
 	});
 }
