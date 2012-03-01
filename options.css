@@ -37,36 +37,29 @@ h1::before {
 	height:40px;
 }
 
-ul#sites {
-	list-style-type: none;
-	margin-left:0px;
-	text-indent: -2.5em;
-}
-
-#sites li {
-	margin-left:0px;
-	padding:1px;
-}
-
-.blacklisted {
-	color: red;
-}
-
-#potsites span, #dnr span {
-	cursor: pointer;
-    border: thin solid;
-    border-radius: 0.3em;
-    line-height: 1.4em;
-    padding: 0 0.3em;
-    white-space: nowrap;
-}
-
-#potsites span {
+[data-status=potential] {
     border-color: #2A2;
-    background: #EFE;
+    background: #AFA;
 }
 
-#dnr span {
+[data-status=blacklist] {
     border-color:  #F22;
-    background: #FEE;
+    background: #FAA;
+}
+
+/* TODO: Figure out how to style image buttons */
+[data-site] td:not(.delete) {
+	opacity: 0.5;
+	cursor: pointer;
+}
+
+td.delete {
+	cursor: pointer;
+	padding-left: 1em;
+}
+
+[data-status="secure"] .secure,
+[data-status="potential"] .potential,
+[data-status="blacklist"] .blacklist {
+	opacity: 1.0 !important;
 }

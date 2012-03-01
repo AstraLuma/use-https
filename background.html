@@ -1,118 +1,125 @@
 <script src="jsonstore.js"></script>
 <script src="sitepile.js"></script>
 <script>
-//FIXME: Expire these eventually
-var doNotRedirect = new SitePile();
-var potentialSites = new SitePile();
-
 // Initialize stored values
 init();
 
+/* Site type
+
+site : The domain (or domain pattern) of the site
+status : One of 'secure', 'potential', 'blacklist'
+
+*/
+
 var API = {
-	'sitelist': function() {
+	'site.all': function() {
 		var rv = [];
-		SitePile.sites().each(function(site) {
-			rv.push(site);
+		jsonStorage.each(function(site, data) {
+			if (site[0] == '$') return;
+			data.site = site;
+			rv.push(data);
 		});
 		return rv;
 	},
-	'sitelist.add': function(args) {
-		var sp = SitePile.sites();
-		if (sp.add(args.site)) {
-			sp.saveLocal();
-			RaiseEvent('sitelist', 'add', {site:args.site});
-			API['potentials.del'](args);
-			redirectChanged();
+	'site.get': function(args) {
+		var site = jsonStorage.get(args.site);
+		if (site) {
+			site.site = args.site;
 		}
+		return site;
 	},
-	'sitelist.del': function(args) {
-		var sp = SitePile.sites();
-		if (sp.del(args.site)) {
-			sp.saveLocal();
-			RaiseEvent('sitelist', 'del', {site:args.site});
-			redirectChanged();
-		}
-	},
-	'sitelist.clear': function() {
-		var sp = SitePile.sites();
-		sp.clear();
-		sp.saveLocal();
-		RaiseEvent('sitelist', 'clear', {});
+	'site.add': function(args) {
+		console.assert(args.site[0] != '$');
+		console.assert(args.status);
+		if (jsonStorage.has(args.site)) return false;
+		jsonStorage.set(args.site, args);
+		RaiseEvent('site', 'new', args);
 		redirectChanged();
+		return true;
 	},
-	'sitelist.match': function(args) {
-		var sp = SitePile.sites();
-		return sp.match(args.site);
-	},
-	'potentials': function() {
-		var rv = [];
-		potentialSites.each(function(site) {
-			rv.push(site);
-		});
-		return rv;
-	},
-	'potentials.add': function(args) {
-		if (doNotRedirect.match(args.site)) {
-			return;
+	'site.set': function(args) {
+		console.assert(args.site[0] != '$');
+		console.assert(args.status);
+		var data = jsonStorage.get(args.site);
+		if (!data) return false;
+		var changed = false
+		for (k in args) {
+			if (k[0] == '$') continue;
+			if (data[k] != args[k]) {
+				data[k] = args[k];
+				changed = true;
+			}
 		}
-		if (potentialSites.add(args.site)) {
-			RaiseEvent('potentials', 'add', {site:args.site});
+		if (changed) {
+			jsonStorage.set(args.site, data);
+			RaiseEvent('site', 'set', data);
+			redirectChanged();
 		}
+		return true;
 	},
-	'potentials.del': function(args) {
-		if (potentialSites.del(args.site)) {
-			RaiseEvent('potentials', 'del', {site:args.site});
+	/// Does either an add or a set, depending on what's needed.
+	'site.makeItSo': function(args) {
+		console.assert(args.site[0] != '$');
+		console.assert(args.status);
+		var data = jsonStorage.get(args.site);
+		var added = false;
+		if (!data) {
+			data = {};
+			added = true;
 		}
+		var changed = false
+		for (k in args) {
+			if (k[0] == '$') continue;
+			if (data[k] != args[k]) {
+				data[k] = args[k];
+				changed = true;
+			}
+		}
+		if (changed) {
+			jsonStorage.set(args.site, data);
+			if (added) {
+				RaiseEvent('site', 'add', data);
+			} else {
+				RaiseEvent('site', 'set', data);
+			}
+			redirectChanged();
+		}
+		return true;
 	},
-	'potentials.clear': function() {
-		potentialSites.clear();
-		RaiseEvent('potentials', 'clear', {});
-	},
-	'potentials.match': function(args) {
-		return potentialSites.match(args.site);
-	},
-	'blacklist': function() {
-		var rv = [];
-		doNotRedirect.each(function(site) {
-			rv.push(site);
-		});
-		return rv;
-	},
-	'blacklist.add': function(args) {
-		if (doNotRedirect.add(args.site)) {
-			RaiseEvent('blacklist', 'add', {site:args.site});
-			API['potentials.del'](args);
+	'site.del': function(args) {
+		if (jsonStorage.del(args.site)) {
+			RaiseEvent('site', 'del', {site:args.site});
 			redirectChanged();
 		}
 	},
-	'blacklist.del': function(args) {
-		if (doNotRedirect.del(args.site)) {
-			RaiseEvent('blacklist', 'del', {site:args.site});
-			redirectChanged();
-		}
+	'site.match': function(args) {
+		//FIXME: Handle wildcards (GH-13)
+		return jsonStorage.get(args.site);
 	},
-	'blacklist.clear': function() {
-		doNotRedirect.clear();
-		RaiseEvent('blacklist', 'clear', {});
-		redirectChanged();
+	'setting.get': function(args) {
+		return jsonStorage.get('$'+args.name);
 	},
-	'blacklist.match': function(args) {
-		return doNotRedirect.match(args.site);
-	},
-	'clearAll': function() {
-		API['potentials.clear']();
-		API['blacklist.clear']();
-	},
-	'enabled': function() {
-		return !jsonStorage.get('is-disabled');
-	},
-	'enabled.set': function(args) {
-		var old = API.enabled();
+	'setting.set': function(args) {
+		var sname = '$'+args.name;
+		var old = jsonStorage.get(sname);
+		jsonStorage.set('$'+args.name, args.value)
 		if (old != args.value) {
-			jsonStorage.set('is-disabled', !args.value);
-			RaiseEvent('enabled', 'set', {value:args.value});
-			redirectChanged();
+			RaiseEvent('setting', 'set', {name:args.name, value:args.value});
+			return true;
+		} else {
+			return false;
 		}
+	},
+	'setting.del': function(args) {
+		var sname = '$'+args.name;
+		var had = jsonStorage.has(sname);
+		jsonStorage.del(sname)
+		if (had) {
+			RaiseEvent('setting', 'del', {name:args.name});
+		}
+	},
+	'setting.has': function(args) {
+		return jsonStorage.has('$'+args.name);
 	},
 	'haspotential': function(args, response) {
 		testUrlForHttps(args.site, function(hasit) {
@@ -141,20 +148,13 @@ chrome.extension.onRequestExternal.addListener(onRequest);
 
 var events = {
 	'*': [],
-	'sitelist': [],
-	'sitelist.add': [],
-	'sitelist.del': [],
-	'sitelist.clear': [],
-	'potentials': [],
-	'potentials.add': [],
-	'potentials.del': [],
-	'potentials.clear': [],
-	'blacklist': [],
-	'blacklist.add': [],
-	'blacklist.del': [],
-	'blacklist.clear': [],
-	'enabled': [],
-	'enabled.set': [],
+	'site': [],
+	'site.add': [],
+	'site.set': [],
+	'site.del': [],
+	'setting': [],
+	'setting.set': [],
+	'setting.del': [],
 };
 
 function onConnect(port) {
@@ -193,10 +193,11 @@ function RaiseEvent(obj, event, args) {
 }
 
 function UpdateAllTabs(site) {
+	var qi;
 	if (site && site.site) { // If it's an API event
 		site = site.site;
 	}
-	if (site) {
+	if (typeof site == 'string') {
 		qi = {url: '*://'+site+'/*'};
 	} else {
 		qi = {};
@@ -211,13 +212,21 @@ localConnect('*', UpdateAllTabs);
 
 function UpdateTab(tabId, url) {
 	var po = new ProtoOrigin(url);
-	var enabled = API.enabled();
-	var listed = API['sitelist.match']({site:po});
-	var blacklisted = API['blacklist.match']({site:po});
-	var potential = API['potentials.match']({site:po});
+	var enabled = API['setting.get']({name:'enabled'});
+	var site = API['site.match']({site:po.o});
+	
+	console.groupCollapsed("UpdateTab", tabId, url);
+	console.log("Enabled:", enabled);
+	console.log(site);
+	
+	if (!site) {
+		console.groupEnd();
+		return;
+	}
 	
 	// Blacklist: Show with pa_blacklist.html
-	// Secure, in list: Show with pa_secured.html
+	// Secure, https: Show with pa_secured.html
+	// Secure, http: Show with pa_broken.html
 	// Potential: Show with pa_potential.html
 	// Default: hide
 	// All cases: Gray if disabled
@@ -226,20 +235,24 @@ function UpdateTab(tabId, url) {
 //	var icon = 'chrome://extension-icon/'+chrome.i18n.getMessage('@@extension_id')+'/16/2';
 	var icon = 'lock';
 	const q = '?'+po.o;
-	
-	if (blacklisted) {
+	if (site.status == 'blacklist') {
 		console.log("Blacklist tab", po);
 		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklisted.html'+q});
 		chrome.pageAction.setTitle({tabId: tabId, title: "Blacklisted"});
 		chrome.pageAction.show(tabId);
 		icon = 'blacklist';
-	} else if (po.isSecure() && listed) {
+	} else if (site.status == 'secure' && po.isSecure()) {
 		console.log("Secured tab", po);
 		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_secured.html'+q});
 		chrome.pageAction.setTitle({tabId: tabId, title: "Secured"});
 		chrome.pageAction.show(tabId);
 		icon = 'secure';
-	} else if (potential) {
+	} else if (site.status == 'secure' && !po.isSecure()) {
+		console.log("Broken tab", po);
+		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_broken.html'+q});
+		chrome.pageAction.setTitle({tabId: tabId, title: "Security Broken"});
+		chrome.pageAction.show(tabId);
+	} else if (site.status == 'potential') {
 		console.log("Potential tab", po);
 		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_potential.html'+q});
 		chrome.pageAction.setTitle({tabId: tabId, title: "Potential"});
@@ -252,6 +265,7 @@ function UpdateTab(tabId, url) {
 		icon = 'gray';
 	}
 	chrome.pageAction.setIcon({tabId: tabId, path: chrome.extension.getURL(icon+'-128.png')});
+	console.groupEnd();
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
@@ -264,7 +278,7 @@ function doPotentialSite(po) {
 	testUrlForHttps(po.o, function(hasHttps) {
 		if (hasHttps) {
 			console.log("Potential site: "+po.o);
-			API['potentials.add']({site:po.o});
+			API['site.set']({site:po.o, status:'potential'});
 		}
 	});
 }
@@ -274,8 +288,8 @@ var requests = {};
 function onBeforeRequest(request) {
 	if (!request) return {}; // on handlerBehaviorChanged() 
 	
-	var isDisabled = jsonStorage.get('is-disabled');
-	if (isDisabled) return {};
+	var enabled = API['setting.get']({name:'enabled'});
+	if (!enabled) return {};
 	const rId = request.requestId;
 	if (!requests[rId]) {
 		requests[rId] = {};
@@ -287,25 +301,23 @@ function onBeforeRequest(request) {
 	var po = new ProtoOrigin(request.url);
 	if (!po.hasSecure()) return {};
 	
-	var siteInList = SitePile.sites().match(po);
+	var site = API['site.match']({site:po.o});
 	
-	if (!po.isSecure()) {
-		if (siteInList) {
-			if(!doNotRedirect.match(po)) {
-				var surl = po.makeSecure();
-				if (requests[rId][surl]) {
-					return {};
-				}
-				requests[rId][surl] = true;
-				console.log("Redirecting "+request.url+" to "+surl);
-				return {redirectUrl: surl}
-			} else {
-				console.log("Not redirecting: "+request.url)
+	if (!site) {
+		window.setTimeout(function() {
+			doPotentialSite(po);
+		}, 0);
+	} else if (po.hasSecure()) {
+		if (site.status == 'secure') {
+			var surl = po.makeSecure();
+			if (requests[rId][surl]) {
+				return {};
 			}
-		} else if (!(potentialSites.match(po) || doNotRedirect.match(po))) {
-			window.setTimeout(function() {
-				doPotentialSite(po);
-			}, 0);
+			requests[rId][surl] = true;
+			console.log("Redirecting "+request.url+" to "+surl);
+			return {redirectUrl: surl}
+		} else if (site.status == 'blacklist') {
+			console.log("Not redirecting: "+request.url)
 		}
 	}
 	return {};
@@ -332,21 +344,33 @@ function redirectChanged() {
 	chrome.webRequest.handlerBehaviorChanged(onBeforeRequest);
 }
 
-function init() {
-	jsonStorage.setDefault('sites', ["facebook.com", "twitter.com", "google.com", "wikipedia.org"]); 
-	jsonStorage.setDefault('is-disabled', false);
-	jsonStorage.setDefault('potential-sites', []);
-	jsonStorage.setDefault('do-not-redirect', []);
-	
-	potentialSites = SitePile.getLocal('potential-sites');
-	doNotRedirect = SitePile.getLocal('do-not-redirect');
-	UpdateAllTabs();
+
+// Remove this after 3-28-2012
+function migrate() {
+	jsonStorage.set('$enabled', jsonStorage.get('is-disabled'));
+	jsonStorage.get('potential-sites').forEach(function(site) {
+		jsonStorage.set(site, {site: site, status: 'potential'});
+	});
+	jsonStorage.get('sites').forEach(function(site) {
+		jsonStorage.set(site, {site: site, status: 'secure'});
+	});
+	// Not migrating blacklist because we largely don't need it, and it's likely to cause problems
+	jsonStorage.del('is-disabled');
+	jsonStorage.del('enable-page-action');
+	jsonStorage.del('potential-sites');
+	jsonStorage.del('sites');
+	jsonStorage.del('do-not-redirect');
 }
 
-window.setInterval(function() {
-	potentialSites.saveLocal();
-	doNotRedirect.saveLocal();
-}, 1000);
+function init() {
+	if (jsonStorage.has('sites')) {
+		migrate();
+	}
+	
+	jsonStorage.setDefault('$enabled', true);
+	
+	UpdateAllTabs();
+}
 
 var urlCache = {};
 //FIXME: Detect when a duplicate request comes in before the first finishes.

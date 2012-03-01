@@ -11,12 +11,10 @@ _JsonStorage.prototype = {
 		}
 	},
 	set: function(key, value) {
-		this[key] = value;
 		localStorage.setItem(key, JSON.stringify(value));
 	},
 	del: function(key) {
 		localStorage.removeItem(key);
-		this[key] = null;
 	},
 	has: function(key) {
 		return typeof localStorage[key] != "undefined";
