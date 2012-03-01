@@ -269,11 +269,20 @@ function doPotentialSite(po) {
 	});
 }
 
-function beforeRequest(request) {
+var requests = {};
+
+function onBeforeRequest(request) {
 	if (!request) return {}; // on handlerBehaviorChanged() 
 	
 	var isDisabled = jsonStorage.get('is-disabled');
 	if (isDisabled) return {};
+	const rId = request.requestId;
+	if (!requests[rId]) {
+		requests[rId] = {};
+	} else if (requests[rId][request.url]) {
+		return {};
+	}
+	requests[rId][request.url] = true;
 	
 	var po = new ProtoOrigin(request.url);
 	if (!po.hasSecure()) return {};
@@ -284,6 +293,10 @@ function beforeRequest(request) {
 		if (siteInList) {
 			if(!doNotRedirect.match(po)) {
 				var surl = po.makeSecure();
+				if (requests[rId][surl]) {
+					return {};
+				}
+				requests[rId][surl] = true;
 				console.log("Redirecting "+request.url+" to "+surl);
 				return {redirectUrl: surl}
 			} else {
@@ -297,28 +310,26 @@ function beforeRequest(request) {
 	}
 	return {};
 }
-chrome.webRequest.onBeforeRequest.addListener(beforeRequest, {urls: ['http://*/*'], types: ['main_frame']}, ["blocking"]);
+chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['http://*/*'], types: ['main_frame']}, ["blocking"]);
 
-function isSubDomain(sub, dom) {
-	if (sub == dom) return true;
-	if (dom != sub.substr(-dom.length)) return false;
-	return sub[dom.length] == '.';
-}
-
-function beforeRedirect(details) {
+function onBeforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
-	var frompo = new ProtoOrigin(details.url),
-	    topo = new ProtoOrigin(details.redirectUrl);
-	if (isSubDomain(topo.o, frompo.o) && frompo.isSecure() && !topo.isSecure()) {
-		console.log("Blacklist: "+frompo.o+" ("+frompo.url+" -> "+topo.url+")");
-		API['blacklist.add']({site:frompo.o});
+	if (requests[details.requestId]) {
+		requests[details.requestId][details.url] = true;
+		requests[details.requestId][details.redirectUrl] = true;
 	}
 }
-chrome.webRequest.onBeforeRedirect.addListener(beforeRedirect, {urls: ['https://*/*']});
+chrome.webRequest.onBeforeRedirect.addListener(onBeforeRedirect, {urls: ['https://*/*']});
 
+function onCompleted(details) {
+	if (!details) return; // on handlerBehaviorChanged() 
+	delete requests[details.requestId];
+}
+chrome.webRequest.onCompleted.addListener(onBeforeRedirect, {urls: ['<all_urls>']});
+
+/// Call this whenever our data changes
 function redirectChanged() {
-	chrome.webRequest.handlerBehaviorChanged(beforeRequest);
-//	chrome.webRequest.handlerBehaviorChanged(beforeRedirect);
+	chrome.webRequest.handlerBehaviorChanged(onBeforeRequest);
 }
 
 function init() {
