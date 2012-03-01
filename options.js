@@ -12,17 +12,17 @@ function mkSiteItem(site) {
 	var row = $("<tr></tr>").attr('data-site', site.site).attr('data-status', site.status)
 		.append($("<th><input type='checkbox'></th>"))
 		.append($("<th></th>").text(site.site))
-		.append($("<td class='secure'><img src='icon-secure.png'></td>"))
-		.append($("<td class='potential'><img src='icon-potential.png'></td>"))
-		.append($("<td class='blacklist'><img src='icon-blacklist.png'></td>"))
-		.append($("<td class='delete'><img src='icon-delete.png'></td>"))
+		.append($("<td class='secure' title='Secured'><img src='icon-secure.png'></td>"))
+		.append($("<td class='potential' title='Potential'><img src='icon-potential.png'></td>"))
+		.append($("<td class='blacklist' title='Blacklisted'><img src='icon-blacklist.png'></td>"))
+		.append($("<td class='delete' title='Delete Site'><img src='icon-delete.png'></td>"))
 		;
 	$('td', row).click(function(evt) {
-		var site = this.parentNode.attributes['data-site'];
+		var site = this.parentNode.attributes['data-site'].nodeValue;
 		if (this.className == 'delete') {
-			UseHTTPS.site.del(site);
+			UseHttps.site.del(site);
 		} else if (this.className) {
-			UseHTTPS.site.set(site, {status: this.className});
+			UseHttps.site.set(site, {status: this.className});
 		}
 	});
 	return row;

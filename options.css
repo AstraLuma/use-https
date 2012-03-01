@@ -37,28 +37,29 @@ h1::before {
 	height:40px;
 }
 
-[data-status=potential] th {
+[data-status=potential] {
     border-color: #2A2;
-    background: #EFE;
+    background: #AFA;
 }
 
-[data-status=blacklist] th {
+[data-status=blacklist] {
     border-color:  #F22;
-    background: #FEE;
+    background: #FAA;
 }
 
 /* TODO: Figure out how to style image buttons */
 [data-site] td:not(.delete) {
-	opacity: 50%;
+	opacity: 0.5;
 	cursor: pointer;
 }
 
 td.delete {
 	cursor: pointer;
+	padding-left: 1em;
 }
 
-[data-status=secure] .secure,
-[data-status=potential] .potential,
-[data-status=blacklist] .blacklist {
-	opacity: 100%;
+[data-status="secure"] .secure,
+[data-status="potential"] .potential,
+[data-status="blacklist"] .blacklist {
+	opacity: 1.0 !important;
 }
