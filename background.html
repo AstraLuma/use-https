@@ -100,7 +100,10 @@ var API = {
 		return jsonStorage.get('$'+args.name);
 	},
 	'setting.set': function(args) {
-		if (jsonStorage.set('$'+args.name, args.value)) {
+		var sname = '$'+args.name;
+		var old = jsonStorage.get(sname);
+		jsonStorage.set('$'+args.name, args.value)
+		if (old != args.value) {
 			RaiseEvent('setting', 'set', {name:args.name, value:args.value});
 			return true;
 		} else {
@@ -108,7 +111,10 @@ var API = {
 		}
 	},
 	'setting.del': function(args) {
-		if (jsonStorage.del('$'+args.name)) {
+		var sname = '$'+args.name;
+		var had = jsonStorage.has(sname);
+		jsonStorage.del(sname)
+		if (had) {
 			RaiseEvent('setting', 'del', {name:args.name});
 		}
 	},
@@ -183,10 +189,11 @@ function RaiseEvent(obj, event, args) {
 }
 
 function UpdateAllTabs(site) {
+	var qi;
 	if (site && site.site) { // If it's an API event
 		site = site.site;
 	}
-	if (site) {
+	if (typeof site == 'string') {
 		qi = {url: '*://'+site+'/*'};
 	} else {
 		qi = {};
@@ -204,6 +211,15 @@ function UpdateTab(tabId, url) {
 	var enabled = API['setting.get']({name:'enabled'});
 	var site = API['site.match']({site:po.o});
 	
+	console.groupCollapsed("UpdateTab", tabId, url);
+	console.log("Enabled:", enabled);
+	console.log(site);
+	
+	if (!site) {
+		console.groupEnd();
+		return;
+	}
+	
 	// Blacklist: Show with pa_blacklist.html
 	// Secure, https: Show with pa_secured.html
 	// Secure, http: Show with pa_broken.html
@@ -214,7 +230,6 @@ function UpdateTab(tabId, url) {
 	 // For the future: Different states have different icons
 	var icon = 'chrome://extension-icon/'+chrome.i18n.getMessage('@@extension_id')+'/16/2';
 	const q = '?'+po.o;
-	
 	if (site.status == 'blacklist') {
 		console.log("Blacklist tab", po);
 		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklisted.html'+q});
@@ -243,6 +258,7 @@ function UpdateTab(tabId, url) {
 	} else {
 		chrome.pageAction.setIcon({tabId: tabId, path: icon+'?grayscale=true'});
 	}
+	console.groupEnd();
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {

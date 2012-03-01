@@ -107,4 +107,14 @@ $('#test-url-for-https').click(function() {
 		}
 	});
 });
+
+$('#is-disabled-input').click(function() {
+	var isDisabled = $('#is-disabled-input').is(':checked');
+	UseHttps.setting.set('enabled', !isDisabled);
+	if(isDisabled) {
+		showMessage("Disabled 'Use HTTPS' for all site(s)");
+	} else {
+		showMessage("Enabled 'Use HTTPS' for all site(s)");
+	}
+});
 });
