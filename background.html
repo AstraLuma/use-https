@@ -84,7 +84,9 @@ var API = {
 		return true;
 	},
 	'site.del': function(args) {
-		if (jsonStorage.del(args.site)) {
+		var had = jsonStorage.has(args.site);
+		jsonStorage.del(args.site);
+		if (had) {
 			RaiseEvent('site', 'del', {site:args.site});
 		}
 	},
