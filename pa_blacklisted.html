@@ -17,6 +17,13 @@ $('#add-sl').click(function() {
 	UseHttps.blacklist.del(SITE);
 	UseHttps.sitelist.add(SITE);
 });
+
+/*chrome.tabs.get(_, function(tab) {
+	if (tab && tab.ingognito) {
+		$('#remove-bl').remove();
+		$('#add-sl').remove();
+	}
+});*/
 });
 		</script>
 	</head>

@@ -12,6 +12,12 @@ $(function() {
 $('#add-sl').click(function() {
 	UseHttps.sitelist.add(SITE);
 });
+
+/*chrome.tabs.get(_, function(tab) {
+	if (tab && tab.ingognito) {
+		$('#add-sl').remove();
+	}
+});*/
 });
 		</script>
 	</head>

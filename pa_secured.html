@@ -19,6 +19,13 @@ $('#remove-sl').click(function() {
 $('#confirm-sl').click(function() {
 	UseHttps.sitelist.del(SITE);
 });
+
+/*chrome.tabs.get(_, function(tab) {
+	if (tab && tab.ingognito) {
+		$('#remove-sl').remove();
+		$('#confirm-sl').remove();
+	}
+});*/
 });
 		</script>
 		<style>

@@ -304,9 +304,17 @@ function onBeforeRequest(request) {
 	var site = API['site.match']({site:po.o});
 	
 	if (!site) {
-		window.setTimeout(function() {
-			doPotentialSite(po);
-		}, 0);
+		if (request.tabId != -1) {
+			chrome.tabs.get(request.tabId, function(tab) {
+				if (!tab.incognito) {
+					doPotentialSite(po);
+				}
+			});
+		} else {
+			window.setTimeout(function() {
+				doPotentialSite(po);
+			}, 0);
+		}
 	} else if (po.hasSecure()) {
 		if (site.status == 'secure') {
 			var surl = po.makeSecure();
