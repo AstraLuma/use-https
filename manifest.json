@@ -1,6 +1,6 @@
 {
-	"name": "Use HTTPS",
-	"version": "1.5.0",
+	"name": "Use HTTPS2",
+	"version": "0.0.1",
 	"description": "Forces defined sites to use https instead of http",
 	"homepage_url": "https://github.com/astronouth7303/use-https",
 	"icons": { "16": "lock-16.png",

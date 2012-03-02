@@ -53,13 +53,14 @@ table {
 	background: #ffabab;
 }
 
+[data-site] td {
+	cursor: pointer;
+}
 [data-site] td:not(.delete) {
 	opacity: 0.5;
-	cursor: pointer;
 }
 
 td.delete {
-	cursor: pointer;
 	padding-left: 1em;
 }
 
@@ -67,4 +68,5 @@ td.delete {
 [data-status="potential"] .potential,
 [data-status="blacklist"] .blacklist {
 	opacity: 1.0 !important;
+	cursor: auto;
 }
