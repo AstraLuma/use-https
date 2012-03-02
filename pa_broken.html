@@ -25,6 +25,10 @@ chrome.tabs.get(TABID, function(tab) {
 		$('#confirm-bl').remove();
 	}
 });
+
+if (SITE.indexOf('google') == -1 && SITE.indexOf('gstatic.com') == -1) {
+	$('#spdy').remove();
+}
 });
 		</script>
 		<style>
@@ -37,8 +41,8 @@ chrome.tabs.get(TABID, function(tab) {
 		<h1>Security Broken</h1>
 		<p>HTTPS was tried, but the server forced insecurity. Note that this 
 		can slow down performance.</p>
-		<p>This may also appear if the site is secretly using SPDY, which 
-		<em>is</em> secure and is perfectly fine.</p>
+		<p id="spdy">It could also be that this site is secretly using SPDY, which 
+		<em>is</em> secure and perfectly fine.</p>
 		<div>
 			<button id="add-bl">Never Secure</button>
 			<button id="confirm-bl">Yes, I'm Sure</button>
