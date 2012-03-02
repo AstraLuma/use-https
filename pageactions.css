@@ -6,10 +6,18 @@
 	background: #fcffa1;
 }
 
+.broken {
+	background: #ffabab;
+}
+
 .blacklisted {
 	background: #ffabab;
 }
 
 * {
 	text-align: center;
+}
+
+body {
+	min-width: 20em;
 }

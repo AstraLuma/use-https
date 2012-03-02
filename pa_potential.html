@@ -9,7 +9,7 @@
 		<script>
 $(function() {
 $('#add-sl').click(function() {
-	UseHttps.sitelist.add(SITE);
+	UseHttps.site.makeItSo(SITE, {status:'secure'});
 });
 
 chrome.tabs.get(TABID, function(tab) {

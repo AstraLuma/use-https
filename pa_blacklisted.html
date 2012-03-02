@@ -9,12 +9,11 @@
 		<script>
 $(function() {
 $('#remove-bl').click(function() {
-	UseHttps.blacklist.del(SITE);
+	UseHttps.site.del(SITE);
 });
 
 $('#add-sl').click(function() {
-	UseHttps.blacklist.del(SITE);
-	UseHttps.sitelist.add(SITE);
+	UseHttps.site.makeItSo(SITE, {status:'secure'});
 });
 
 chrome.tabs.get(TABID, function(tab) {

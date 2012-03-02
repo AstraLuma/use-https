@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Security Broken</title>
+		<link rel="stylesheet" type="text/css" href="pageactions.css">
+		<script src="jquery.min.js"></script>
+		<script src="api.js"></script>
+		<script src="pageactions.js"></script>
+		<script>
+$(function() {
+$('#add-bl').click(function() {
+	$('#confirm-bl').show();
+	window.setTimeout(function() {
+		$('#confirm-bl').hide();
+	}, 5*1000);
+});
+		
+$('#confirm-bl').click(function() {
+	UseHttps.site.makeItSo(SITE, {status:'blacklist'});
+});
+
+chrome.tabs.get(TABID, function(tab) {
+	if (tab && tab.incognito) {
+		$('#add-bl').remove();
+		$('#confirm-bl').remove();
+	}
+});
+});
+		</script>
+		<style>
+#confirm-bl {
+	display: none;
+}
+		</style>
+	</head>
+	<body class="broken">
+		<h1>Security Broken</h1>
+		<p>HTTPS was tried, but the server forced insecurity. Note that this 
+		can slow down performance.</p>
+		<p>This may also appear if the site is secretly using SPDY, which 
+		<em>is</em> secure and is perfectly fine.</p>
+		<div>
+			<button id="add-bl">Never Secure</button>
+			<button id="confirm-bl">Yes, I'm Sure</button>
+		</div>
+	</body>
+</html>

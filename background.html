@@ -34,7 +34,6 @@ var API = {
 		if (jsonStorage.has(args.site)) return false;
 		jsonStorage.set(args.site, args);
 		RaiseEvent('site', 'add', args);
-		redirectChanged();
 		return true;
 	},
 	'site.set': function(args) {
@@ -53,7 +52,6 @@ var API = {
 		if (changed) {
 			jsonStorage.set(args.site, data);
 			RaiseEvent('site', 'set', data);
-			redirectChanged();
 		}
 		return true;
 	},
@@ -82,14 +80,12 @@ var API = {
 			} else {
 				RaiseEvent('site', 'set', data);
 			}
-			redirectChanged();
 		}
 		return true;
 	},
 	'site.del': function(args) {
 		if (jsonStorage.del(args.site)) {
 			RaiseEvent('site', 'del', {site:args.site});
-			redirectChanged();
 		}
 	},
 	'site.match': function(args) {
@@ -291,26 +287,39 @@ function onBeforeRequest(request) {
 	var enabled = API['setting.get']({name:'enabled'});
 	if (!enabled) return {};
 	const rId = request.requestId;
+	console.group("Request:", rId, request.url);
+	console.log(request);
 	if (!requests[rId]) {
 		requests[rId] = {};
 	} else if (requests[rId][request.url]) {
+		console.log("Loop detected");
+		console.groupEnd();
 		return {};
 	}
 	requests[rId][request.url] = true;
 	
 	var po = new ProtoOrigin(request.url);
-	if (!po.hasSecure()) return {};
+	if (!po.hasSecure()) {
+		console.log("No secure version:", po.p);
+		console.groupEnd();
+		return {};
+	}
 	
 	var site = API['site.match']({site:po.o});
 	
 	if (!site) {
+		console.log("No site found");
 		if (request.tabId != -1) {
 			chrome.tabs.get(request.tabId, function(tab) {
+				console.log("Incognito:", tab.incognito);
+				console.groupEnd();
 				if (!tab.incognito) {
 					doPotentialSite(po);
 				}
 			});
 		} else {
+			console.log("Not a tabbed request");
+			console.groupEnd();
 			window.setTimeout(function() {
 				doPotentialSite(po);
 			}, 0);
@@ -318,19 +327,27 @@ function onBeforeRequest(request) {
 	} else if (po.hasSecure()) {
 		if (site.status == 'secure') {
 			var surl = po.makeSecure();
+			console.log("Secure:", surl);
 			if (requests[rId][surl]) {
+				console.log("Loop detected");
+				console.groupEnd();
 				return {};
 			}
 			requests[rId][surl] = true;
 			console.log("Redirecting "+request.url+" to "+surl);
+			console.groupEnd();
 			return {redirectUrl: surl}
 		} else if (site.status == 'blacklist') {
-			console.log("Not redirecting: "+request.url)
+			console.log("Blacklist "+request.url);
+			console.groupEnd();
+		} else {
+			console.log("Status:", site.status);
+			console.groupEnd();
 		}
 	}
 	return {};
 }
-chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['http://*/*'], types: ['main_frame']}, ["blocking"]);
+chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['<all_urls>'], /*types: ['main_frame']*/}, ["blocking"]);
 
 function onBeforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
@@ -339,7 +356,7 @@ function onBeforeRedirect(details) {
 		requests[details.requestId][details.redirectUrl] = true;
 	}
 }
-chrome.webRequest.onBeforeRedirect.addListener(onBeforeRedirect, {urls: ['https://*/*']});
+chrome.webRequest.onBeforeRedirect.addListener(onBeforeRedirect, {urls: ['<all_urls>']});
 
 function onCompleted(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
@@ -351,7 +368,7 @@ chrome.webRequest.onCompleted.addListener(onBeforeRedirect, {urls: ['<all_urls>'
 function redirectChanged() {
 	chrome.webRequest.handlerBehaviorChanged(onBeforeRequest);
 }
-
+localConnect('*', redirectChanged);
 
 // Remove this after 3-28-2012
 function migrate() {

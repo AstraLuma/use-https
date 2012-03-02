@@ -16,7 +16,7 @@ $('#remove-sl').click(function() {
 });
 		
 $('#confirm-sl').click(function() {
-	UseHttps.sitelist.del(SITE);
+	UseHttps.site.del(SITE);
 });
 
 chrome.tabs.get(TABID, function(tab) {
