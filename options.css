@@ -37,17 +37,22 @@ h1::before {
 	height:40px;
 }
 
+table {
+	border-spacing: 0 2px;
+}
+
+[data-site] img {
+	vertical-align: middle;
+}
+
 [data-status=potential] {
-    border-color: #2A2;
-    background: #AFA;
+	background: #5577FF;
 }
 
 [data-status=blacklist] {
-    border-color:  #F22;
-    background: #FAA;
+	background: #ffabab;
 }
 
-/* TODO: Figure out how to style image buttons */
 [data-site] td:not(.delete) {
 	opacity: 0.5;
 	cursor: pointer;

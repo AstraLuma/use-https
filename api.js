@@ -37,7 +37,16 @@ const UseHttps = {
 		},
 		each: function(cb) {
 			UseHttps.site.all(function(sites) {
-				sites.forEach(function(site) {
+				function cmp(l, r) {
+					if (l.site < r.site) {
+						return -1;
+					} else if (l.site > r.site) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				sites.sort(cmp).forEach(function(site) {
 					cb(site);
 				});
 			});
