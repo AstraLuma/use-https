@@ -364,7 +364,8 @@ function onCompleted(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
 	delete requests[details.requestId];
 }
-chrome.webRequest.onCompleted.addListener(onBeforeRedirect, {urls: ['<all_urls>']});
+chrome.webRequest.onCompleted.addListener(onCompleted, {urls: ['<all_urls>']});
+chrome.webRequest.onErrorOccurred.addListener(onCompleted, {urls: ['<all_urls>']});
 
 /// Call this whenever our data changes
 function redirectChanged() {
