@@ -5,9 +5,8 @@
 		<link rel="stylesheet" type="text/css" href="pageactions.css">
 		<script src="jquery.min.js"></script>
 		<script src="api.js"></script>
+		<script src="pageactions.js"></script>
 		<script>
-const SITE = document.location.search.substr(1);
-
 $(function() {
 $('#remove-bl').click(function() {
 	UseHttps.blacklist.del(SITE);
@@ -18,12 +17,12 @@ $('#add-sl').click(function() {
 	UseHttps.sitelist.add(SITE);
 });
 
-/*chrome.tabs.get(_, function(tab) {
-	if (tab && tab.ingognito) {
+chrome.tabs.get(TABID, function(tab) {
+	if (tab && tab.incognito) {
 		$('#remove-bl').remove();
 		$('#add-sl').remove();
 	}
-});*/
+});
 });
 		</script>
 	</head>

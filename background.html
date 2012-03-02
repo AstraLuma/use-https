@@ -234,7 +234,7 @@ function UpdateTab(tabId, url) {
 	 // For the future: Different states have different icons
 //	var icon = 'chrome://extension-icon/'+chrome.i18n.getMessage('@@extension_id')+'/16/2';
 	var icon = 'lock';
-	const q = '?'+po.o;
+	const q = '?site='+po.o+'&tabid='+tabId;
 	if (site.status == 'blacklist') {
 		console.log("Blacklist tab", po);
 		chrome.pageAction.setPopup({tabId: tabId, popup: 'pa_blacklisted.html'+q});
