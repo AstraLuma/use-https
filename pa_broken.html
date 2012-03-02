@@ -26,7 +26,11 @@ chrome.tabs.get(TABID, function(tab) {
 	}
 });
 
-if (SITE.indexOf('google') == -1 && SITE.indexOf('gstatic.com') == -1) {
+if (
+		SITE.indexOf('google') == -1 && 
+		SITE.indexOf('youtube') == -1 && 
+		SITE.indexOf('gstatic.com') == -1
+		) {
 	$('#spdy').remove();
 }
 });
