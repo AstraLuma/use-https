@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Matching test</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script>
+var PATTERNS = {
+	"a.b.c": true,
+	"*.d.e": true,
+	"*.f": true,
+	"g.h": true
+};
+
+function match(site) {
+	var rv = PATTERNS[site];
+	while (!rv) {
+		var i = site.indexOf('.');
+		if (i == -1) return;
+		site = site.substr(i+1);
+		rv = PATTERNS["*."+site];
+	}
+	return rv;
+}
+
+$(function() {
+
+for (var s in PATTERNS) {
+	$("#patterns").append(
+		$("<li></li>").text(s)
+	);
+}
+
+$("#go").click(function(evt) {
+	var site = $("#subject").val();
+	var rv = match(site);
+	if (rv == null) rv = '(null)';
+	else if (rv == undefined) rv = '(undefined)';
+	$('#result').text(rv);
+});
+
+});
+		</script>
+	</head>
+	<body>
+		<input type="text" id="subject" placeholder="String to test">
+		<button id="go">Test</button>
+		<div id="result"></div>
+		<ul id="patterns">
+		</ul>
+	</body>
+</html>

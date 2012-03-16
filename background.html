@@ -97,7 +97,7 @@ var API = {
 			var i = site.indexOf('.');
 			if (i == -1) return;
 			site = site.substr(i+1);
-			rv = jsonStorage.get("*."+site)
+			rv = jsonStorage.get("*."+site);
 		}
 		return rv;
 	},
