@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Matching test</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script>
+var PATTERNS = ["a.b.c", "*.d.e", "*.f", "g.h"];
+
+function reverseDomain(d) {
+	var p = d.split('.');
+	p.reverse();
+	return p.join('.');
+}
+
+function update() {
+	function cmp(l, r) {
+		l = reverseDomain(l);
+		r = reverseDomain(r);
+		if (l < r) {
+			return -1;
+		} else if (l > r) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+	$("#patterns").empty();
+	PATTERNS.sort(cmp).forEach(function(s) {
+		$("#patterns").append(
+			$("<li></li>").text(s)
+		);
+	});
+}
+
+$(function() {
+update();
+
+$("#go").click(function(evt) {
+	var site = $("#subject").val();
+	PATTERNS.push(site);
+	update();
+});
+
+});
+		</script>
+	</head>
+	<body>
+		<input type="text" id="subject" placeholder="Site to Add">
+		<button id="go">Add</button>
+		<ul id="patterns">
+		</ul>
+	</body>
+</html>

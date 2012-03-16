@@ -37,7 +37,15 @@ const UseHttps = {
 		},
 		each: function(cb) {
 			UseHttps.site.all(function(sites) {
+				function reverseDomain(d) {
+					var p = d.split('.');
+					p.reverse();
+					return p.join('.');
+				}
+
 				function cmp(l, r) {
+					l = reverseDomain(l);
+					r = reverseDomain(r);
 					if (l.site < r.site) {
 						return -1;
 					} else if (l.site > r.site) {
