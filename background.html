@@ -93,6 +93,9 @@ var API = {
 	'site.match': function(args) {
 		var site = args.site;
 		var rv = jsonStorage.get(site);
+		if (!rv) {
+			rv = jsonStorage.get("*."+site);
+		}
 		while (!rv) {
 			var i = site.indexOf('.');
 			if (i == -1) return;
