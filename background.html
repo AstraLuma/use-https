@@ -349,7 +349,7 @@ function onBeforeRequest(request) {
 	}
 	return {};
 }
-chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['<all_urls>'], /*types: ['main_frame']*/}, ["blocking"]);
+chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['<all_urls>'], types: ['main_frame']}, ["blocking"]);
 
 function onBeforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
