@@ -44,11 +44,11 @@ const UseHttps = {
 				}
 
 				function cmp(l, r) {
-					l = reverseDomain(l);
-					r = reverseDomain(r);
-					if (l.site < r.site) {
+					l = reverseDomain(l.site);
+					r = reverseDomain(r.site);
+					if (l < r) {
 						return -1;
-					} else if (l.site > r.site) {
+					} else if (l > r) {
 						return 1;
 					} else {
 						return 0;
