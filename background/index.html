@@ -1,0 +1,66 @@
+<script src="jsonstore.js"></script>
+<script src="sitepile.js"></script>
+<script src="api-impl.js"></script>
+<script src="tabs.js"></script>
+<script src="requests.js"></script>
+<script>
+// Initialize stored values
+init();
+
+// Remove this after 3-28-2012
+function migrate() {
+	jsonStorage.set('$enabled', jsonStorage.get('is-disabled'));
+	jsonStorage.get('potential-sites').forEach(function(site) {
+		jsonStorage.set(site, {site: site, status: 'potential'});
+	});
+	jsonStorage.get('sites').forEach(function(site) {
+		jsonStorage.set(site, {site: site, status: 'secure'});
+	});
+	// Not migrating blacklist because we largely don't need it, and it's likely to cause problems
+	jsonStorage.del('is-disabled');
+	jsonStorage.del('enable-page-action');
+	jsonStorage.del('potential-sites');
+	jsonStorage.del('sites');
+	jsonStorage.del('do-not-redirect');
+}
+
+function init() {
+	if (jsonStorage.has('sites')) {
+		migrate();
+	}
+	
+	jsonStorage.setDefault('$enabled', true);
+	
+	UpdateAllTabs();
+}
+
+var urlCache = {};
+//FIXME: Detect when a duplicate request comes in before the first finishes.
+function testUrlForHttps(url, callback) {
+	if (urlCache[url] != null) {
+		callback(urlCache[url]);
+		return;
+	}
+	var xhr = new XMLHttpRequest();
+	xhr.open('HEAD', 'https://' + url, true);
+	
+	//FIXME: Detect redirects
+	xhr.onreadystatechange = function(data) {
+		
+		if (xhr.readyState == 4) {
+			
+			if (xhr.status == 200) {
+				urlCache[url] = true;
+				callback(true);
+			}
+			else {
+				urlCache[url] = false;
+				callback(false);
+			}
+		}
+	}
+
+	xhr.send();
+}
+
+</script>

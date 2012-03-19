@@ -16,7 +16,7 @@
 					"webRequestBlocking",
 					"<all_urls>"
 					],
-	"background_page": "background.html",
+	"background_page": "background/index.html",
 	"options_page": "options.html",
 	"minimum_chrome_version": "17.0"
 }
