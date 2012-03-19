@@ -35,8 +35,8 @@ var API = {
 		console.assert(args.status);
 		var data = jsonStorage.get(args.site);
 		if (!data) return false;
-		var changed = false
-		for (k in args) {
+		var changed = false;
+		for (var k in args) {
 			if (k[0] == '$') continue;
 			if (data[k] != args[k]) {
 				data[k] = args[k];
@@ -59,8 +59,8 @@ var API = {
 			data = {};
 			added = true;
 		}
-		var changed = false
-		for (k in args) {
+		var changed = false;
+		for (var k in args) {
 			if (k[0] == '$') continue;
 			if (data[k] != args[k]) {
 				data[k] = args[k];

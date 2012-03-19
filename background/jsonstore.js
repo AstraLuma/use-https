@@ -20,13 +20,13 @@ _JsonStorage.prototype = {
 		return typeof localStorage[key] != "undefined";
 	},
 	setDefault: function(key, value) {
-		if (localStorage[key] == null) {
+		if (localStorage[key] === null) {
 			this.set(key, value);
 		}
 		return this.get(key);
 	},
 	each: function(callback) {
-		for (k in localStorage) {
+		for (var k in localStorage) {
 			callback(k, this.get(k));
 		}
 	},
