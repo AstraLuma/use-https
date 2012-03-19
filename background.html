@@ -304,7 +304,10 @@ function onBeforeRequest(request) {
 	if (!requests[rId]) {
 		requests[rId] = {};
 	} else if (requests[rId][request.url]) {
-		console.log("Loop detected");
+		console.group("Loop detected");
+		console.log(request.url);
+		console.log(requests[rId]);
+		console.groupEnd();
 		console.groupEnd();
 		return {};
 	}
@@ -359,16 +362,15 @@ function onBeforeRequest(request) {
 	}
 	return {};
 }
-chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['<all_urls>'], types: ['main_frame']}, ["blocking"]);
+chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ['<all_urls>'], /*types: ['main_frame']*/}, ["blocking"]);
 
-function onBeforeRedirect(details) {
+/*function onBeforeRedirect(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
 	if (requests[details.requestId]) {
 		requests[details.requestId][details.url] = true;
-		requests[details.requestId][details.redirectUrl] = true;
 	}
 }
-chrome.webRequest.onBeforeRedirect.addListener(onBeforeRedirect, {urls: ['<all_urls>']});
+chrome.webRequest.onBeforeRedirect.addListener(onBeforeRedirect, {urls: ['<all_urls>']});*/
 
 function onCompleted(details) {
 	if (!details) return; // on handlerBehaviorChanged() 
